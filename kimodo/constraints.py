@@ -552,6 +552,81 @@ class RightFootConstraintSet(EndEffectorConstraintSet):
         super().__init__(*args, joint_names=self.joint_names, **kwargs)
 
 
+class FootContactConstraintSet:
+    """Constraint set fixing foot contact states on given frames.
+
+    The contact vector follows Kimodo's feature layout:
+    ``[LeftToe, LeftHeel, RightToe, RightHeel]`` (4 values per frame).
+    """
+
+    name = "foot-contact"
+
+    def __init__(
+        self,
+        skeleton: SkeletonBase,
+        frame_indices: Tensor,
+        foot_contacts: Tensor,
+        to_crop: bool = False,
+    ) -> None:
+        self.skeleton = skeleton
+        self.frame_indices = frame_indices.to(dtype=torch.long)
+
+        if to_crop:
+            foot_contacts = foot_contacts[self.frame_indices]
+        else:
+            assert len(foot_contacts) == len(
+                frame_indices
+            ), "The number of foot contact rows should match the number of frame indices."
+
+        if foot_contacts.shape[-1] != 4:
+            raise ValueError(f"foot_contacts must have last dim = 4, got {tuple(foot_contacts.shape)}.")
+
+        self.foot_contacts = foot_contacts.to(dtype=torch.float32)
+
+    def update_constraints(self, data_dict: dict, index_dict: dict) -> None:
+        """Append foot contact values to data/index dicts."""
+        data_dict["foot_contacts"].append(self.foot_contacts)
+        index_dict["foot_contacts"].append(self.frame_indices)
+
+    def crop_move(self, start: int, end: int) -> "FootContactConstraintSet":
+        """Return a new FootContactConstraintSet for the cropped frame range [start, end)."""
+        mask = (self.frame_indices >= start) & (self.frame_indices < end)
+        return FootContactConstraintSet(
+            self.skeleton,
+            frame_indices=self.frame_indices[mask] - start,
+            foot_contacts=self.foot_contacts[mask],
+        )
+
+    def get_save_info(self) -> dict:
+        """Return a dict suitable for JSON serialization."""
+        return {
+            "type": self.name,
+            "frame_indices": self.frame_indices,
+            "foot_contacts": self.foot_contacts,
+        }
+
+    def to(
+        self,
+        device: Optional[Union[str, torch.device]] = None,
+        dtype: Optional[torch.dtype] = None,
+    ) -> "FootContactConstraintSet":
+        self.frame_indices = _tensor_to(self.frame_indices, device, torch.long)
+        self.foot_contacts = _tensor_to(self.foot_contacts, device, dtype)
+        if device is not None and hasattr(self.skeleton, "to"):
+            self.skeleton = self.skeleton.to(device)
+        return self
+
+    @classmethod
+    def from_dict(cls, skeleton: SkeletonBase, dico: dict) -> "FootContactConstraintSet":
+        """Build a FootContactConstraintSet from a dict (e.g. loaded from JSON)."""
+        device = skeleton.device if hasattr(skeleton, "device") else "cpu"
+        return cls(
+            skeleton=skeleton,
+            frame_indices=torch.tensor(dico["frame_indices"], dtype=torch.long, device=device),
+            foot_contacts=torch.tensor(dico["foot_contacts"], dtype=torch.float32, device=device),
+        )
+
+
 TYPE_TO_CLASS = {
     "root2d": Root2DConstraintSet,
     "fullbody": FullBodyConstraintSet,
@@ -560,6 +635,7 @@ TYPE_TO_CLASS = {
     "left-foot": LeftFootConstraintSet,
     "right-foot": RightFootConstraintSet,
     "end-effector": EndEffectorConstraintSet,
+    "foot-contact": FootContactConstraintSet,
 }
 
 

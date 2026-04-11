@@ -296,6 +296,15 @@ class KimodoMotionRep(MotionRepBase):
             m_sliced = motion_mask[:, self.slice_dict["local_joints_positions"]]
             m_sliced[masking] = True
 
+        if (fname := "foot_contacts") in index_dict and index_dict[fname]:
+            indices = _cat_indices(index_dict[fname])
+            indices, foot_contacts = get_unique_index_and_data(indices, torch.cat(data_dict[fname]))
+            foot_contacts = _match_obs_dtype(foot_contacts)
+            f_sliced = observed_motion[:, self.slice_dict["foot_contacts"]]
+            f_sliced[indices] = foot_contacts
+            m_sliced = motion_mask[:, self.slice_dict["foot_contacts"]]
+            m_sliced[indices] = True
+
         if to_normalize:
             observed_motion = self.normalize(observed_motion)
         return observed_motion, motion_mask
