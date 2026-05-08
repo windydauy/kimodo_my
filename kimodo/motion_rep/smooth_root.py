@@ -3,6 +3,7 @@
 """Smooth root trajectory: ADMM-based smoother with margin constraints and get_smooth_root_pos helper."""
 
 import math
+import os
 
 import numpy as np
 import torch
@@ -122,9 +123,13 @@ class TrajectorySmoother:
         z[:] = x + u - z_t
 
         # Check if we need to project back to margin
-        z_diff_norms = np.linalg.norm(z, axis=1)
+        # Avoid np.linalg.norm here: in some mixed NumPy installs this can
+        # intermittently crash with a bogus reduce() argument error.
+        z_diff_norms = np.sqrt(np.sum(z * z, axis=1))
         mask = z_diff_norms > self.margin_vals
-        if np.any(mask):
+        # Avoid relying on np.any() internals from a potentially mixed NumPy install;
+        # ndarray.any() is equivalent here and more robust in affected environments.
+        if bool(mask.any()):
             scale_factors = self.margin_vals[mask] / z_diff_norms[mask]
             z[mask] *= scale_factors[:, np.newaxis]
 
@@ -132,7 +137,8 @@ class TrajectorySmoother:
         z[:] += z_t
 
         if self.circle_project:
-            z[:] = z / (np.linalg.norm(z, axis=1, keepdims=True) + 1.0e-6)
+            z_norms = np.sqrt(np.sum(z * z, axis=1, keepdims=True))
+            z[:] = z / (z_norms + 1.0e-6)
 
     def u_update(self, u, x, z):
         """Update u in the ADMM iteration using vectorized operations."""
@@ -153,6 +159,25 @@ def smooth_signal(x, margins, pos_weight=0, alpha_overrelax=1.8, admm_iters=500,
     Returns:
         Smoothed trajectory of shape ``[T, D]``.
     """
+    # Force numeric arrays to avoid rare object-dtype propagation issues.
+    x = np.asarray(x, dtype=np.float64)
+    margins = np.asarray(margins, dtype=np.float64)
+    if x.ndim != 2:
+        raise ValueError(f"smooth_signal expects x with shape [T, D], got shape {x.shape}.")
+    if margins.ndim != 1 or margins.shape[0] != x.shape[0]:
+        raise ValueError(
+            f"smooth_signal expects margins with shape [T], got {margins.shape} for x.shape={x.shape}."
+        )
+    if x.shape[0] == 0:
+        return x.copy()
+    if x.shape[0] < 5:
+        # ADMM system can become singular for very short trajectories.
+        return x.copy()
+    if not np.all(np.isfinite(x)):
+        x = np.nan_to_num(x, copy=False)
+    if not np.all(np.isfinite(margins)):
+        margins = np.nan_to_num(margins, copy=False, nan=0.06, posinf=0.06, neginf=0.0)
+
     x_smoothed = x.copy()
     x_smoothed[:] = x.mean(axis=0, keepdims=True)
 
@@ -173,7 +198,12 @@ def smooth_signal(x, margins, pos_weight=0, alpha_overrelax=1.8, admm_iters=500,
             admm_iters=admm_iters,
             circle_project=circle_project,
         )
-        x_smoothed[::stepsize] = smoother.smooth(x[::stepsize], x_smoothed[::stepsize])
+        try:
+            x_smoothed[::stepsize] = smoother.smooth(x[::stepsize], x_smoothed[::stepsize])
+        except Exception:
+            # Keep training robust on rare smoother failures by falling back to
+            # the unsmoothed signal at the current multigrid level.
+            x_smoothed[::stepsize] = x[::stepsize]
 
         # interpolate to next level:
         next_stepsize = stepsize // 2
@@ -209,6 +239,11 @@ def get_smooth_root_pos(hip_translations):
         Smoothed root translations ``[B, T, 3]`` where ``x/z`` are smoothed and
         ``y`` remains unchanged.
     """
+    if os.environ.get("KIMODO_DISABLE_ROOT_SMOOTH", "0") == "1":
+        # Escape hatch for environments where scipy/numpy sparse solves may
+        # intermittently crash with native floating-point signals.
+        return hip_translations
+
     root_translations_xz = hip_translations[..., [0, 2]]
     root_translations_y = hip_translations[..., [1]]
 

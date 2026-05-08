@@ -1,0 +1,262 @@
+{
+  "settings": {
+    "npz_glob": "custom_motion/robot-object/sub10*_original.npz",
+    "timeline_jsonl": "custom_motion/timeline_sub10.jsonl",
+    "include_unmatched_clips": false,
+    "model": "Kimodo-G1-RP-v1",
+    "target_fps": 30.0,
+    "keyframe_step": 30,
+    "diffusion_steps": 100,
+    "hard_project_observed_motion": true,
+    "hard_project_prefix_frames": 30
+  },
+  "total_clips": 33,
+  "success_clips": 33,
+  "failed_clips": 0,
+  "per_clip": [
+    {
+      "clip": "sub10_largebox_000_original",
+      "mean_error_m": 0.046786267845921686,
+      "max_error_m": 0.11595515979160254,
+      "min_error_m": 0.002326847008113314,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_001_original",
+      "mean_error_m": 0.033478821026575636,
+      "max_error_m": 0.07971579124215777,
+      "min_error_m": 0.001564395852940277,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_002_original",
+      "mean_error_m": 0.04383962119133638,
+      "max_error_m": 0.09600032027695024,
+      "min_error_m": 0.006419977898184384,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_003_original",
+      "mean_error_m": 0.03142085034246872,
+      "max_error_m": 0.07682690733651293,
+      "min_error_m": 0.006243828806851312,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_004_original",
+      "mean_error_m": 0.022640052975062167,
+      "max_error_m": 0.04193606261738977,
+      "min_error_m": 0.005075934407375643,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_005_original",
+      "mean_error_m": 0.04446358294231259,
+      "max_error_m": 0.09692930346400148,
+      "min_error_m": 0.006521844224889558,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_006_original",
+      "mean_error_m": 0.03694753130193346,
+      "max_error_m": 0.09044007590300263,
+      "min_error_m": 0.004929820424199193,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_007_original",
+      "mean_error_m": 0.04306116448216552,
+      "max_error_m": 0.08979483355839958,
+      "min_error_m": 0.009796252076158257,
+      "num_rows": 44
+    },
+    {
+      "clip": "sub10_largebox_008_original",
+      "mean_error_m": 0.07272299843874526,
+      "max_error_m": 0.18732136946304365,
+      "min_error_m": 0.008840668422695385,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_009_original",
+      "mean_error_m": 0.04125692786690258,
+      "max_error_m": 0.08746427618880505,
+      "min_error_m": 0.011169345660735006,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_010_original",
+      "mean_error_m": 0.03127923681273002,
+      "max_error_m": 0.08987538845379085,
+      "min_error_m": 0.0054556249756083156,
+      "num_rows": 28
+    },
+    {
+      "clip": "sub10_largebox_014_original",
+      "mean_error_m": 0.021867975133838598,
+      "max_error_m": 0.0478651372240486,
+      "min_error_m": 0.0044052557435662245,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_022_original",
+      "mean_error_m": 0.030345492410661794,
+      "max_error_m": 0.10342555889326004,
+      "min_error_m": 0.003944846404166768,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_024_original",
+      "mean_error_m": 0.03630934748038035,
+      "max_error_m": 0.07880890984740925,
+      "min_error_m": 0.007356363356861024,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_026_original",
+      "mean_error_m": 0.05297312791334444,
+      "max_error_m": 0.13880017573031608,
+      "min_error_m": 0.006101133791911037,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_031_original",
+      "mean_error_m": 0.02854847551847572,
+      "max_error_m": 0.06489765926812491,
+      "min_error_m": 0.007267210345764677,
+      "num_rows": 28
+    },
+    {
+      "clip": "sub10_largebox_033_original",
+      "mean_error_m": 0.03537709725226393,
+      "max_error_m": 0.0849959074616047,
+      "min_error_m": 0.011220571418789826,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_034_original",
+      "mean_error_m": 0.03728035654333449,
+      "max_error_m": 0.07441007571219015,
+      "min_error_m": 0.01105111420635988,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_035_original",
+      "mean_error_m": 0.040437452912467094,
+      "max_error_m": 0.08864437373074668,
+      "min_error_m": 0.011144228670315564,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_036_original",
+      "mean_error_m": 0.04215828559842862,
+      "max_error_m": 0.12407860953698002,
+      "min_error_m": 0.004306228264609598,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_037_original",
+      "mean_error_m": 0.04471405384083818,
+      "max_error_m": 0.11937308555563748,
+      "min_error_m": 0.007656975278657569,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_038_original",
+      "mean_error_m": 0.02717878247140124,
+      "max_error_m": 0.0748359254806131,
+      "min_error_m": 0.005531134849615825,
+      "num_rows": 28
+    },
+    {
+      "clip": "sub10_largebox_039_original",
+      "mean_error_m": 0.04631113569852865,
+      "max_error_m": 0.12780639051506384,
+      "min_error_m": 0.013692148369239335,
+      "num_rows": 24
+    },
+    {
+      "clip": "sub10_largebox_040_original",
+      "mean_error_m": 0.03310797985103848,
+      "max_error_m": 0.06272984678836138,
+      "min_error_m": 0.009019200172775813,
+      "num_rows": 20
+    },
+    {
+      "clip": "sub10_largebox_041_original",
+      "mean_error_m": 0.031909342133190355,
+      "max_error_m": 0.08259236542324268,
+      "min_error_m": 0.006081420754066047,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_042_original",
+      "mean_error_m": 0.025809798450166746,
+      "max_error_m": 0.05302668749760479,
+      "min_error_m": 0.003863927346063668,
+      "num_rows": 32
+    },
+    {
+      "clip": "sub10_largebox_043_original",
+      "mean_error_m": 0.02529959628226057,
+      "max_error_m": 0.0639994618494624,
+      "min_error_m": 0.003752096322235482,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_045_original",
+      "mean_error_m": 0.03479366432102781,
+      "max_error_m": 0.09694526851098102,
+      "min_error_m": 0.007164911082739804,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_046_original",
+      "mean_error_m": 0.03272470781761272,
+      "max_error_m": 0.08108681848080793,
+      "min_error_m": 0.009058341505550394,
+      "num_rows": 40
+    },
+    {
+      "clip": "sub10_largebox_047_original",
+      "mean_error_m": 0.036361047462443986,
+      "max_error_m": 0.09951628260600984,
+      "min_error_m": 0.006523013929572452,
+      "num_rows": 36
+    },
+    {
+      "clip": "sub10_largebox_048_original",
+      "mean_error_m": 0.03229371534765347,
+      "max_error_m": 0.07777947314460977,
+      "min_error_m": 0.0011043261432264132,
+      "num_rows": 44
+    },
+    {
+      "clip": "sub10_largebox_049_original",
+      "mean_error_m": 0.03472711631576423,
+      "max_error_m": 0.07705428745689624,
+      "min_error_m": 0.007797889870025984,
+      "num_rows": 56
+    },
+    {
+      "clip": "sub10_largebox_050_original",
+      "mean_error_m": 0.04534117726134171,
+      "max_error_m": 0.11938379173980035,
+      "min_error_m": 0.01005045451341021,
+      "num_rows": 44
+    }
+  ],
+  "overall_all_ee": {
+    "count": 1128,
+    "mean_error_m": 0.03716294160150823,
+    "max_error_m": 0.18732136946304365,
+    "min_error_m": 0.0011043261432264132
+  },
+  "overall_hands_only": {
+    "count": 564,
+    "mean_error_m": 0.03451783973943307,
+    "max_error_m": 0.17138432874630918,
+    "min_error_m": 0.0011043261432264132
+  },
+  "failures": []
+}

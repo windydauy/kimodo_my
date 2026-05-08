@@ -3,8 +3,10 @@
 """Kimodo model: denoiser, text encoder, diffusion sampling, and post-processing."""
 
 import logging
+import os
 from typing import Dict, List, Optional, Tuple, Union
 
+import numpy as np
 import torch
 from torch import nn
 from tqdm.auto import tqdm
@@ -54,8 +56,91 @@ class Kimodo(nn.Module):
 
         self.device = device
         # for classifier-free guidance
+        self.hook_enabled = False
+        self.hook_loop_index = None
+        self.hook_module_path = None
+        self.hook_save_path = None
+        self._hook_handle = None
+        self._hook_captured = False
+        self._current_loop_index = None
 
         self.to(device)
+
+    def _resolve_module_by_path(self, root_module: nn.Module, module_path: str) -> nn.Module:
+        cur = root_module
+        for token in module_path.split("."):
+            if hasattr(cur, token):
+                cur = getattr(cur, token)
+                continue
+            if token.isdigit():
+                idx = int(token)
+                cur = cur[idx]
+                continue
+            raise ValueError(f"Invalid hook module path token {token!r} in {module_path!r}")
+        if not isinstance(cur, nn.Module):
+            raise ValueError(f"Resolved object at {module_path!r} is not a torch.nn.Module.")
+        return cur
+
+    def _save_hook_output(self, output: Union[torch.Tensor, Tuple, List, Dict]):
+        if isinstance(output, torch.Tensor):
+            return output.detach().cpu()
+        if isinstance(output, (list, tuple)):
+            return type(output)(self._save_hook_output(x) for x in output)
+        if isinstance(output, dict):
+            return {k: self._save_hook_output(v) for k, v in output.items()}
+        return output
+
+    def _setup_forward_hook(self):
+        if not self.hook_enabled:
+            return
+        if self._hook_handle is not None:
+            return
+
+        if self.hook_loop_index is None or self.hook_module_path is None or self.hook_save_path is None:
+            raise ValueError("Hook enabled but hook_loop_index/hook_module_path/hook_save_path are incomplete.")
+
+        root_model = self.denoiser.model if hasattr(self.denoiser, "model") else self.denoiser
+        target_module = self._resolve_module_by_path(root_model, self.hook_module_path)
+        self._hook_captured = False
+
+        def _hook_fn(_module, _input, output):
+            if self._hook_captured:
+                return
+            if self._current_loop_index != self.hook_loop_index:
+                return
+            captured = self._save_hook_output(output)
+            save_dir = os.path.dirname(self.hook_save_path)
+            if save_dir:
+                os.makedirs(save_dir, exist_ok=True)
+            if self.hook_save_path.endswith(".pt"):
+                torch.save(
+                    {
+                        "loop_index": int(self._current_loop_index),
+                        "module_path": self.hook_module_path,
+                        "output": captured,
+                    },
+                    self.hook_save_path,
+                )
+            else:
+                if isinstance(captured, torch.Tensor):
+                    out_np = captured.numpy()
+                else:
+                    raise ValueError("NPZ hook saving currently supports tensor output only; use .pt for general output.")
+                np.savez(
+                    self.hook_save_path,
+                    output=out_np,
+                    loop_index=np.array(int(self._current_loop_index), dtype=np.int32),
+                    module_path=np.array(self.hook_module_path),
+                )
+            self._hook_captured = True
+
+        self._hook_handle = target_module.register_forward_hook(_hook_fn)
+
+    def _teardown_forward_hook(self):
+        if self._hook_handle is not None:
+            self._hook_handle.remove()
+            self._hook_handle = None
+        self._current_loop_index = None
 
     @property
     def output_skeleton(self):
@@ -138,6 +223,10 @@ class Kimodo(nn.Module):
         # for postprocess
         post_processing: bool = False,
         root_margin: float = 0.04,
+        # optional hard projection of constraints during sampling
+        hard_project_observed_motion: bool = False,
+        hard_project_prefix_frames: int = 0,
+        hard_project_release_frames: int = 0,
         # progress bar
         progress_bar=tqdm,
     ) -> torch.Tensor:
@@ -277,6 +366,9 @@ class Kimodo(nn.Module):
                 observed_motion=observed_motion,
                 cfg_weight=cfg_weight,
                 cfg_type=cfg_type,
+                hard_project_observed_motion=hard_project_observed_motion and is_first_motion,
+                hard_project_prefix_frames=hard_project_prefix_frames,
+                hard_project_release_frames=hard_project_release_frames,
             )
 
             motion = self.motion_rep.unnormalize(motion)
@@ -359,8 +451,17 @@ class Kimodo(nn.Module):
         # for postprocess
         post_processing: bool = False,
         root_margin: float = 0.04,
+        # optional hard projection of constraints during sampling
+        hard_project_observed_motion: bool = False,
+        hard_project_prefix_frames: int = 0,
+        hard_project_release_frames: int = 0,
         # progress bar
         progress_bar=tqdm,
+        # hook debug
+        hook_enabled: bool = False,
+        hook_loop_index: Optional[int] = None,
+        hook_module_path: Optional[str] = None,
+        hook_save_path: Optional[str] = None,
     ) -> dict:
         """Generate motion from text prompts and optional kinematic constraints.
 
@@ -404,6 +505,13 @@ class Kimodo(nn.Module):
             root_margin: Horizontal margin (in meters) used by the post-processor
                 to determine when to correct root motion. When root deviates more than
                 margin from the constraint, the post-processor will correct it.
+            hard_project_observed_motion: If ``True``, perform per-step hard projection
+                on constrained motion features during sampling.
+            hard_project_prefix_frames: If ``> 0``, only apply hard projection to
+                the first ``K`` frames.  If ``<= 0``, apply to all constrained frames.
+            hard_project_release_frames: If ``> 0`` and ``hard_project_prefix_frames > 0``,
+                apply a short decaying release after the hard-projected prefix to reduce
+                boundary snapping.
             progress_bar: Callable wrapping an iterable to display progress
                 (default: ``tqdm``).  Pass a no-op to silence output.
 
@@ -420,6 +528,10 @@ class Kimodo(nn.Module):
             - ``global_root_heading`` – Root heading angle over time.
         """
         device = self.device
+        self.hook_enabled = hook_enabled
+        self.hook_loop_index = hook_loop_index
+        self.hook_module_path = hook_module_path
+        self.hook_save_path = hook_save_path
 
         if multi_prompt:
             # multi prompt generation
@@ -438,6 +550,9 @@ class Kimodo(nn.Module):
                 percentage_transition_override,
                 post_processing,
                 root_margin,
+                hard_project_observed_motion,
+                hard_project_prefix_frames,
+                hard_project_release_frames,
                 progress_bar,
             )
 
@@ -496,6 +611,9 @@ class Kimodo(nn.Module):
             observed_motion=observed_motion,
             cfg_weight=cfg_weight,
             cfg_type=cfg_type,
+            hard_project_observed_motion=hard_project_observed_motion,
+            hard_project_prefix_frames=hard_project_prefix_frames,
+            hard_project_release_frames=hard_project_release_frames,
             progress_bar=progress_bar,
         )
 
@@ -544,6 +662,9 @@ class Kimodo(nn.Module):
         text_pad_mask: Optional[torch.Tensor] = None,
         guide_masks: Optional[Dict] = None,
         cfg_type: Optional[str] = None,
+        hard_project_observed_motion: bool = False,
+        hard_project_prefix_frames: int = 0,
+        hard_project_release_frames: int = 0,
         progress_bar=tqdm,
     ) -> torch.Tensor:
         """Sample full denoising loop.
@@ -585,21 +706,71 @@ class Kimodo(nn.Module):
         # init diffusion with correct num steps before looping
         use_timesteps = self.diffusion.space_timesteps(num_denoising_steps[0])[0]
         self.diffusion.calc_diffusion_vars(use_timesteps)
-        for i in progress_bar(indices):
-            t = torch.tensor([i] * cur_mot.size(0), device=self.device)
-            with torch.inference_mode():
-                cur_mot = self.denoising_step(
-                    cur_mot,
-                    pad_mask,
-                    text_feat,
-                    text_pad_mask,
-                    t,
-                    first_heading_angle,
-                    motion_mask,
-                    observed_motion,
-                    num_denoising_steps,
-                    cfg_weight,
-                    guide_masks=guide_masks,
-                    cfg_type=cfg_type,
-                )
+
+        hard_mask = None
+        hard_noise = None
+        hard_boundary_frame = None
+        if hard_project_observed_motion and motion_mask is not None and observed_motion is not None:
+            hard_mask = motion_mask > 0 if motion_mask.dtype != torch.bool else motion_mask.clone()
+            if hard_project_prefix_frames > 0:
+                n_frames = min(int(hard_project_prefix_frames), hard_mask.shape[1])
+                prefix_mask = torch.zeros_like(hard_mask, dtype=torch.bool, device=hard_mask.device)
+                prefix_mask[:, :n_frames, :] = True
+                hard_mask = hard_mask & prefix_mask
+                hard_boundary_frame = n_frames - 1 if n_frames > 0 else None
+            if bool(hard_mask.any().item()):
+                hard_noise = torch.randn_like(observed_motion)
+            else:
+                hard_mask = None
+
+        self._setup_forward_hook()
+        try:
+            for i in progress_bar(indices):
+                self._current_loop_index = int(i)
+                t = torch.tensor([i] * cur_mot.size(0), device=self.device)
+                if hard_mask is not None:
+                    cur_mot_preproj = cur_mot
+                    projected_xt = self.diffusion.q_sample(observed_motion, t, noise=hard_noise)
+                    cur_mot = torch.where(hard_mask, projected_xt, cur_mot)
+                    if (
+                        hard_project_release_frames > 0
+                        and hard_boundary_frame is not None
+                        and hard_boundary_frame + 1 < cur_mot.shape[1]
+                    ):
+                        boundary_mask = hard_mask[:, hard_boundary_frame, :]
+                        if bool(boundary_mask.any().item()):
+                            # Use boundary correction as a short decaying offset to avoid abrupt release.
+                            boundary_delta = projected_xt[:, hard_boundary_frame, :] - cur_mot_preproj[:, hard_boundary_frame, :]
+                            total = int(hard_project_release_frames)
+                            for rel_idx in range(1, total + 1):
+                                frame_idx = hard_boundary_frame + rel_idx
+                                if frame_idx >= cur_mot.shape[1]:
+                                    break
+                                alpha = float(total - rel_idx + 1) / float(total + 1)
+                                release_delta = boundary_delta * alpha
+                                cur_mot[:, frame_idx, :] = torch.where(
+                                    boundary_mask,
+                                    cur_mot[:, frame_idx, :] + release_delta,
+                                    cur_mot[:, frame_idx, :],
+                                )
+                with torch.inference_mode():
+                    cur_mot = self.denoising_step(
+                        cur_mot,
+                        pad_mask,
+                        text_feat,
+                        text_pad_mask,
+                        t,
+                        first_heading_angle,
+                        motion_mask,
+                        observed_motion,
+                        num_denoising_steps,
+                        cfg_weight,
+                        guide_masks=guide_masks,
+                        cfg_type=cfg_type,
+                    )
+        finally:
+            self._teardown_forward_hook()
+        if hard_mask is not None:
+            # Ensure final constrained features match x0 exactly on constrained entries.
+            cur_mot = torch.where(hard_mask, observed_motion, cur_mot)
         return cur_mot

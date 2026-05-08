@@ -14,6 +14,8 @@ from __future__ import annotations
 
 import math
 import random
+import logging
+import os
 from pathlib import Path
 from typing import Any, Dict, Optional, Sequence, Tuple
 
@@ -30,6 +32,8 @@ from kimodo.motion_rep.feature_utils import length_to_mask
 
 from .g1_csv import PathLike, load_g1_csv_motion
 from .timeline_annotations import TimelineAnnotationIndex
+
+log = logging.getLogger(__name__)
 
 
 def _pad_motion_to(motion: torch.Tensor, target_len: int) -> torch.Tensor:
@@ -128,6 +132,8 @@ class G1CSVTextDataset(Dataset):
         text_mode: str = "mixed",
         csv_paths: Optional[Sequence[PathLike]] = None,
         rng_seed: Optional[int] = None,
+        skip_bad_samples: bool = False,
+        max_bad_sample_retries: int = 8,
         # forward to load_g1_csv_motion
         source_coord_system: str = "mujoco",
         root_euler_order: str = "xyz",
@@ -168,6 +174,8 @@ class G1CSVTextDataset(Dataset):
         self.translate_to_zero_prob = float(translate_to_zero_prob)
         self.text_mode = text_mode
         self.rng = random.Random(rng_seed)
+        self.skip_bad_samples = bool(skip_bad_samples)
+        self.max_bad_sample_retries = max(0, int(max_bad_sample_retries))
         self.input_fps = int(input_fps) if input_fps is not None else None
         self.target_fps = int(getattr(self.motion_rep, "fps", 0)) or None
 
@@ -689,8 +697,10 @@ class G1CSVTextDataset(Dataset):
             return local_joint_rots, root_positions
         return local_joint_rots[start_frame:end_frame], root_positions[start_frame:end_frame]
 
-    def __getitem__(self, idx: int) -> Dict[str, Any]:
+    def _build_item(self, idx: int) -> Dict[str, Any]:
         csv_path = self.csv_paths[idx]
+        if os.environ.get("KIMODO_DEBUG_LOG_CSV_LOAD", "0") == "1":
+            log.warning("Loading CSV idx=%d path=%s", idx, csv_path)
         motion_data = load_g1_csv_motion(csv_path, **self.g1_loader_kwargs)
         local_joint_rots = motion_data["local_joint_rots"]
         root_positions = motion_data["root_positions"]
@@ -738,6 +748,42 @@ class G1CSVTextDataset(Dataset):
             "constraint_mode": constraint_mode,  # pattern string (e.g. "fullbody_sparse+root2d_dense") or None
             "constraints": constraints,  # optional raw constraint objects
         }
+
+    def __getitem__(self, idx: int) -> Dict[str, Any]:
+        if not self.skip_bad_samples:
+            return self._build_item(idx)
+
+        current_idx = int(idx)
+        attempts = self.max_bad_sample_retries + 1
+        last_exc: Optional[Exception] = None
+        for attempt in range(1, attempts + 1):
+            try:
+                return self._build_item(current_idx)
+            except Exception as exc:  # noqa: BLE001 - dataset robustness fallback
+                last_exc = exc
+                csv_path = self.csv_paths[current_idx]
+                if attempt >= attempts or len(self.csv_paths) <= 1:
+                    break
+                next_idx = self.rng.randrange(len(self.csv_paths))
+                if next_idx == current_idx:
+                    next_idx = (next_idx + 1) % len(self.csv_paths)
+                log.warning(
+                    "Skipping bad sample idx=%d path=%s due to %s: %s. "
+                    "Resampling idx=%d (attempt %d/%d).",
+                    current_idx,
+                    csv_path,
+                    type(exc).__name__,
+                    exc,
+                    next_idx,
+                    attempt,
+                    attempts,
+                )
+                current_idx = next_idx
+
+        assert last_exc is not None
+        raise RuntimeError(
+            f"Failed to load sample after {attempts} attempts (start_idx={idx})."
+        ) from last_exc
 
 
 def g1_text_collate_fn(batch: Sequence[Dict[str, Any]]) -> Dict[str, Any]:

@@ -1,0 +1,333 @@
+{
+  "settings": {
+    "prompt_mode": "multiprompt",
+    "npz_glob": "custom_motion/robot-object/sub10*_original.npz",
+    "timeline_jsonl": "custom_motion/timeline_sub10.jsonl",
+    "include_unmatched_clips": false,
+    "model": "Kimodo-G1-RP-v1",
+    "target_fps": 30.0,
+    "keyframe_step": 30,
+    "diffusion_steps": 100,
+    "hard_project_observed_motion": true,
+    "hard_project_prefix_frames": 3,
+    "hard_project_mode": "dense_fullbody_prefix",
+    "num_transition_frames": 5,
+    "share_transition": true,
+    "segments_dump_dir": null
+  },
+  "total_clips": 33,
+  "success_clips": 33,
+  "failed_clips": 0,
+  "per_clip": [
+    {
+      "clip": "sub10_largebox_000_original",
+      "mean_error_m": 0.1033718449544278,
+      "max_error_m": 0.26432385765015964,
+      "min_error_m": 0.0099628954784498,
+      "num_rows": 32,
+      "num_prompt_segments": 8,
+      "total_frames": 120
+    },
+    {
+      "clip": "sub10_largebox_001_original",
+      "mean_error_m": 0.06336795958779261,
+      "max_error_m": 0.2892837552966131,
+      "min_error_m": 0.010898535837857291,
+      "num_rows": 32,
+      "num_prompt_segments": 9,
+      "total_frames": 123
+    },
+    {
+      "clip": "sub10_largebox_002_original",
+      "mean_error_m": 0.10937668292764044,
+      "max_error_m": 0.20076709954079858,
+      "min_error_m": 0.0032869051652099144,
+      "num_rows": 32,
+      "num_prompt_segments": 9,
+      "total_frames": 123
+    },
+    {
+      "clip": "sub10_largebox_003_original",
+      "mean_error_m": 0.12036667565871555,
+      "max_error_m": 0.20920653932960825,
+      "min_error_m": 0.013742641028757371,
+      "num_rows": 32,
+      "num_prompt_segments": 9,
+      "total_frames": 123
+    },
+    {
+      "clip": "sub10_largebox_004_original",
+      "mean_error_m": 0.10335450941085471,
+      "max_error_m": 0.18700643777366993,
+      "min_error_m": 0.01012734210218938,
+      "num_rows": 36,
+      "num_prompt_segments": 9,
+      "total_frames": 131
+    },
+    {
+      "clip": "sub10_largebox_005_original",
+      "mean_error_m": 0.07031994253574814,
+      "max_error_m": 0.2920947725199873,
+      "min_error_m": 0.009501829141459672,
+      "num_rows": 32,
+      "num_prompt_segments": 9,
+      "total_frames": 126
+    },
+    {
+      "clip": "sub10_largebox_006_original",
+      "mean_error_m": 0.09699059780549792,
+      "max_error_m": 0.29267026582657774,
+      "min_error_m": 0.005803619627731796,
+      "num_rows": 36,
+      "num_prompt_segments": 9,
+      "total_frames": 135
+    },
+    {
+      "clip": "sub10_largebox_007_original",
+      "mean_error_m": 0.1049558196815553,
+      "max_error_m": 0.20149671521300758,
+      "min_error_m": 0.014600255745450746,
+      "num_rows": 44,
+      "num_prompt_segments": 11,
+      "total_frames": 164
+    },
+    {
+      "clip": "sub10_largebox_008_original",
+      "mean_error_m": 0.1090126090423752,
+      "max_error_m": 0.2094221271817265,
+      "min_error_m": 0.00837285578299884,
+      "num_rows": 32,
+      "num_prompt_segments": 8,
+      "total_frames": 117
+    },
+    {
+      "clip": "sub10_largebox_009_original",
+      "mean_error_m": 0.15479322640758636,
+      "max_error_m": 0.28235854622804346,
+      "min_error_m": 0.026926953344749,
+      "num_rows": 36,
+      "num_prompt_segments": 9,
+      "total_frames": 132
+    },
+    {
+      "clip": "sub10_largebox_010_original",
+      "mean_error_m": 0.06719439113802797,
+      "max_error_m": 0.1540629837649319,
+      "min_error_m": 0.01219811239164862,
+      "num_rows": 28,
+      "num_prompt_segments": 8,
+      "total_frames": 108
+    },
+    {
+      "clip": "sub10_largebox_014_original",
+      "mean_error_m": 0.05916389572126332,
+      "max_error_m": 0.15320143041678055,
+      "min_error_m": 0.012514325871336161,
+      "num_rows": 32,
+      "num_prompt_segments": 8,
+      "total_frames": 120
+    },
+    {
+      "clip": "sub10_largebox_022_original",
+      "mean_error_m": 0.07538625022570121,
+      "max_error_m": 0.14982798096738748,
+      "min_error_m": 0.01931418869186293,
+      "num_rows": 32,
+      "num_prompt_segments": 8,
+      "total_frames": 113
+    },
+    {
+      "clip": "sub10_largebox_024_original",
+      "mean_error_m": 0.09003255671379677,
+      "max_error_m": 0.23166524391275642,
+      "min_error_m": 0.02961719877270641,
+      "num_rows": 32,
+      "num_prompt_segments": 9,
+      "total_frames": 123
+    },
+    {
+      "clip": "sub10_largebox_026_original",
+      "mean_error_m": 0.09577920187720444,
+      "max_error_m": 0.18951068837407034,
+      "min_error_m": 0.02095170921643509,
+      "num_rows": 36,
+      "num_prompt_segments": 10,
+      "total_frames": 138
+    },
+    {
+      "clip": "sub10_largebox_031_original",
+      "mean_error_m": 0.07301665344073806,
+      "max_error_m": 0.14316976055489347,
+      "min_error_m": 0.01212771817042797,
+      "num_rows": 28,
+      "num_prompt_segments": 7,
+      "total_frames": 101
+    },
+    {
+      "clip": "sub10_largebox_033_original",
+      "mean_error_m": 0.07300432523523019,
+      "max_error_m": 0.14324706023383726,
+      "min_error_m": 0.014553338660638267,
+      "num_rows": 32,
+      "num_prompt_segments": 9,
+      "total_frames": 126
+    },
+    {
+      "clip": "sub10_largebox_034_original",
+      "mean_error_m": 0.08934990948309177,
+      "max_error_m": 0.1682225225905275,
+      "min_error_m": 0.01249018078936331,
+      "num_rows": 32,
+      "num_prompt_segments": 8,
+      "total_frames": 114
+    },
+    {
+      "clip": "sub10_largebox_035_original",
+      "mean_error_m": 0.051728867091296364,
+      "max_error_m": 0.11328081211717284,
+      "min_error_m": 0.009659104261126168,
+      "num_rows": 36,
+      "num_prompt_segments": 10,
+      "total_frames": 144
+    },
+    {
+      "clip": "sub10_largebox_036_original",
+      "mean_error_m": 0.061506931340082005,
+      "max_error_m": 0.17336099384164022,
+      "min_error_m": 0.009382349389612507,
+      "num_rows": 36,
+      "num_prompt_segments": 9,
+      "total_frames": 129
+    },
+    {
+      "clip": "sub10_largebox_037_original",
+      "mean_error_m": 0.07337661998760288,
+      "max_error_m": 0.1223344288637633,
+      "min_error_m": 0.01940651919321505,
+      "num_rows": 32,
+      "num_prompt_segments": 8,
+      "total_frames": 114
+    },
+    {
+      "clip": "sub10_largebox_038_original",
+      "mean_error_m": 0.06610401660004964,
+      "max_error_m": 0.14118524166126037,
+      "min_error_m": 0.01400625946534384,
+      "num_rows": 28,
+      "num_prompt_segments": 7,
+      "total_frames": 95
+    },
+    {
+      "clip": "sub10_largebox_039_original",
+      "mean_error_m": 0.03796858963600042,
+      "max_error_m": 0.07869668257218242,
+      "min_error_m": 0.010536535317224439,
+      "num_rows": 24,
+      "num_prompt_segments": 6,
+      "total_frames": 81
+    },
+    {
+      "clip": "sub10_largebox_040_original",
+      "mean_error_m": 0.06926986290901822,
+      "max_error_m": 0.14931732856277494,
+      "min_error_m": 0.010231485643669424,
+      "num_rows": 20,
+      "num_prompt_segments": 5,
+      "total_frames": 72
+    },
+    {
+      "clip": "sub10_largebox_041_original",
+      "mean_error_m": 0.07844689513147726,
+      "max_error_m": 0.13873311307690064,
+      "min_error_m": 0.004610855370254555,
+      "num_rows": 32,
+      "num_prompt_segments": 8,
+      "total_frames": 117
+    },
+    {
+      "clip": "sub10_largebox_042_original",
+      "mean_error_m": 0.06473343573450427,
+      "max_error_m": 0.1397121954504338,
+      "min_error_m": 0.003576906062396663,
+      "num_rows": 32,
+      "num_prompt_segments": 9,
+      "total_frames": 126
+    },
+    {
+      "clip": "sub10_largebox_043_original",
+      "mean_error_m": 0.06351731715595665,
+      "max_error_m": 0.11569335279512666,
+      "min_error_m": 0.014678972630810225,
+      "num_rows": 36,
+      "num_prompt_segments": 10,
+      "total_frames": 143
+    },
+    {
+      "clip": "sub10_largebox_045_original",
+      "mean_error_m": 0.0723552343814243,
+      "max_error_m": 0.18410281606613088,
+      "min_error_m": 0.010402304064549136,
+      "num_rows": 36,
+      "num_prompt_segments": 10,
+      "total_frames": 140
+    },
+    {
+      "clip": "sub10_largebox_046_original",
+      "mean_error_m": 0.05591921676018826,
+      "max_error_m": 0.15467593334405247,
+      "min_error_m": 0.007529372528843343,
+      "num_rows": 40,
+      "num_prompt_segments": 11,
+      "total_frames": 159
+    },
+    {
+      "clip": "sub10_largebox_047_original",
+      "mean_error_m": 0.060993430904836804,
+      "max_error_m": 0.11813625732202603,
+      "min_error_m": 0.00993437694569214,
+      "num_rows": 36,
+      "num_prompt_segments": 10,
+      "total_frames": 143
+    },
+    {
+      "clip": "sub10_largebox_048_original",
+      "mean_error_m": 0.07613417730939591,
+      "max_error_m": 0.20958837242724035,
+      "min_error_m": 0.005768465981581607,
+      "num_rows": 44,
+      "num_prompt_segments": 12,
+      "total_frames": 170
+    },
+    {
+      "clip": "sub10_largebox_049_original",
+      "mean_error_m": 0.0658006450172314,
+      "max_error_m": 0.140687043208584,
+      "min_error_m": 0.006132634884733908,
+      "num_rows": 56,
+      "num_prompt_segments": 15,
+      "total_frames": 222
+    },
+    {
+      "clip": "sub10_largebox_050_original",
+      "mean_error_m": 0.09597360574757317,
+      "max_error_m": 0.3307262741085083,
+      "min_error_m": 0.01702277612599288,
+      "num_rows": 44,
+      "num_prompt_segments": 12,
+      "total_frames": 174
+    }
+  ],
+  "overall_all_ee": {
+    "count": 1128,
+    "mean_error_m": 0.08095786446619606,
+    "max_error_m": 0.3307262741085083,
+    "min_error_m": 0.0032869051652099144
+  },
+  "overall_hands_only": {
+    "count": 564,
+    "mean_error_m": 0.07991701210130343,
+    "max_error_m": 0.31745020924302964,
+    "min_error_m": 0.0032869051652099144
+  },
+  "failures": []
+}

@@ -18,12 +18,12 @@ Assumptions used here:
 from __future__ import annotations
 
 import xml.etree.ElementTree as ET
+from functools import lru_cache
 from pathlib import Path
 from typing import Dict, Optional, Sequence, Union
 
 import numpy as np
 import torch
-from scipy.spatial.transform import Rotation
 
 
 PathLike = Union[str, Path]
@@ -140,8 +140,93 @@ def _load_csv_table(csv_path: PathLike) -> tuple[list[str], np.ndarray]:
     return header, data
 
 
-def _load_joint_axes_from_xml(xml_path: PathLike) -> Dict[str, np.ndarray]:
-    root = ET.parse(str(xml_path)).getroot()
+def _axis_angle_to_matrix(rotvec: np.ndarray) -> np.ndarray:
+    """Convert axis-angle vectors ``[T, 3]`` to rotation matrices ``[T, 3, 3]``.
+
+    Pure NumPy implementation (Rodrigues), avoiding SciPy native kernels.
+    """
+    if rotvec.ndim != 2 or rotvec.shape[1] != 3:
+        raise ValueError(f"rotvec must have shape [T, 3], got {rotvec.shape}.")
+
+    angles = np.linalg.norm(rotvec, axis=1)  # [T]
+    # Safe normalized axis; keep zero-angle rows at axis=0.
+    axis = np.zeros_like(rotvec, dtype=np.float64)
+    nonzero = angles > 1e-12
+    axis[nonzero] = rotvec[nonzero] / angles[nonzero, None]
+
+    x = axis[:, 0]
+    y = axis[:, 1]
+    z = axis[:, 2]
+
+    K = np.zeros((rotvec.shape[0], 3, 3), dtype=np.float64)
+    K[:, 0, 1] = -z
+    K[:, 0, 2] = y
+    K[:, 1, 0] = z
+    K[:, 1, 2] = -x
+    K[:, 2, 0] = -y
+    K[:, 2, 1] = x
+
+    I = np.broadcast_to(np.eye(3, dtype=np.float64), K.shape)
+    sin_t = np.sin(angles)[:, None, None]
+    one_minus_cos_t = (1.0 - np.cos(angles))[:, None, None]
+    KK = K @ K
+    R = I + sin_t * K + one_minus_cos_t * KK
+    return R.astype(np.float32)
+
+
+def _single_axis_rotation_matrices(axis_char: str, angles: np.ndarray) -> np.ndarray:
+    """Create rotation matrices for one axis and per-frame angles.
+
+    Args:
+        axis_char: one of ``x``, ``y``, ``z``.
+        angles: shape ``[T]`` radians.
+    """
+    c = np.cos(angles)
+    s = np.sin(angles)
+    T = angles.shape[0]
+    R = np.broadcast_to(np.eye(3, dtype=np.float64), (T, 3, 3)).copy()
+    if axis_char == "x":
+        R[:, 1, 1] = c
+        R[:, 1, 2] = -s
+        R[:, 2, 1] = s
+        R[:, 2, 2] = c
+    elif axis_char == "y":
+        R[:, 0, 0] = c
+        R[:, 0, 2] = s
+        R[:, 2, 0] = -s
+        R[:, 2, 2] = c
+    elif axis_char == "z":
+        R[:, 0, 0] = c
+        R[:, 0, 1] = -s
+        R[:, 1, 0] = s
+        R[:, 1, 1] = c
+    else:
+        raise ValueError(f"Unsupported axis {axis_char!r}; expected one of x/y/z.")
+    return R.astype(np.float32)
+
+
+def _euler_to_matrix(euler_angles: np.ndarray, order: str) -> np.ndarray:
+    """Convert Euler angles ``[T, 3]`` to rotation matrices ``[T, 3, 3]``.
+
+    This matches the previous training usage where ``order='xyz'`` and angles
+    are provided as root_rotateX/Y/Z (radians).
+    """
+    if euler_angles.ndim != 2 or euler_angles.shape[1] != 3:
+        raise ValueError(f"euler_angles must have shape [T, 3], got {euler_angles.shape}.")
+    order = order.lower()
+    if len(order) != 3 or any(c not in "xyz" for c in order):
+        raise ValueError(f"Unsupported root_euler_order={order!r}; expected a 3-char string in xyz.")
+
+    a0 = _single_axis_rotation_matrices(order[0], euler_angles[:, 0])
+    a1 = _single_axis_rotation_matrices(order[1], euler_angles[:, 1])
+    a2 = _single_axis_rotation_matrices(order[2], euler_angles[:, 2])
+    # Match scipy Rotation.from_euler(order, ...): for order "xyz", this is Rz @ Ry @ Rx.
+    return (a2 @ a1 @ a0).astype(np.float32)
+
+
+@lru_cache(maxsize=8)
+def _load_joint_axes_from_xml_cached(xml_path_str: str) -> Dict[str, np.ndarray]:
+    root = ET.parse(xml_path_str).getroot()
 
     class_axis: Dict[str, str] = {}
     for default_tag in root.findall(".//default"):
@@ -171,6 +256,11 @@ def _load_joint_axes_from_xml(xml_path: PathLike) -> Dict[str, np.ndarray]:
         joint_axis[joint_name] = axis / norm
 
     return joint_axis
+
+
+def _load_joint_axes_from_xml(xml_path: PathLike) -> Dict[str, np.ndarray]:
+    # Cache by normalized absolute path to avoid reparsing XML on every sample.
+    return _load_joint_axes_from_xml_cached(str(Path(xml_path).resolve()))
 
 
 def _csv_col_to_xml_joint_name(csv_col: str) -> str:
@@ -250,7 +340,10 @@ def load_g1_csv_motion(
 
     root_euler = table[:, [col2idx[c] for c in ROOT_ROTATE_COLS]].astype(np.float32)
     root_euler = _to_radians(root_euler, root_angle_unit)
-    root_rot_source = Rotation.from_euler(root_euler_order, root_euler, degrees=False).as_matrix().astype(np.float32)
+    if not np.isfinite(root_euler).all():
+        bad_count = int(np.size(root_euler) - np.isfinite(root_euler).sum())
+        raise ValueError(f"Non-finite root euler angles in {csv_path}; bad_values={bad_count}.")
+    root_rot_source = _euler_to_matrix(root_euler, root_euler_order)
     if source_coord_system == "mujoco":
         root_rot_mats = np.einsum(
             "ij,tjk,kl->til",
@@ -282,6 +375,12 @@ def load_g1_csv_motion(
         joint_idx = joint_name_to_index[skel_name]
         angles = table[:, col2idx[col]].astype(np.float32)
         angles = _to_radians(angles, joint_angle_unit)
+        if not np.isfinite(angles).all():
+            bad_count = int(np.size(angles) - np.isfinite(angles).sum())
+            raise ValueError(
+                f"Non-finite joint angles for {xml_joint_name!r} (column {col!r}); "
+                f"bad_values={bad_count}."
+            )
 
         axis_from_xml = joint_axis_mujoco[xml_joint_name]
         if source_coord_system == "mujoco":
@@ -294,7 +393,17 @@ def load_g1_csv_motion(
         axis_target = axis_target / axis_norm
 
         rotvec = angles[:, None] * axis_target[None, :]
-        rotmats = Rotation.from_rotvec(rotvec).as_matrix().astype(np.float32)
+        if not np.isfinite(rotvec).all():
+            bad_count = int(np.size(rotvec) - np.isfinite(rotvec).sum())
+            raise ValueError(
+                f"Non-finite rotvec for {xml_joint_name!r} (column {col!r}); bad_values={bad_count}."
+            )
+        rotmats = _axis_angle_to_matrix(rotvec)
+        if not np.isfinite(rotmats).all():
+            bad_count = int(np.size(rotmats) - np.isfinite(rotmats).sum())
+            raise ValueError(
+                f"Non-finite rotmats for {xml_joint_name!r} (column {col!r}); bad_values={bad_count}."
+            )
         local_joint_rots[:, joint_idx] = rotmats
 
     root_positions_t = torch.as_tensor(root_positions, dtype=dtype, device=device)
