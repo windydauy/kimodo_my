@@ -15,6 +15,7 @@ import argparse
 import json
 import logging
 import os
+import re
 import time
 from contextlib import nullcontext
 from pathlib import Path
@@ -191,29 +192,6 @@ def load_text_encoder(cfg: DictConfig, device: torch.device) -> Any:
     elif hasattr(text_encoder, "eval"):
         text_encoder.eval()
 
-    # Keep behavior aligned with kimodo.training.train
-    llm2vec_model = getattr(text_encoder, "model", None)
-    if isinstance(llm2vec_model, nn.Module) and not getattr(llm2vec_model, "_kimodo_eval_noop_patched", False):
-        # LLM2Vec.encode() calls self.eval() every batch. In some torch/transformers
-        # environments this recursive train(False) path can throw unexpectedly.
-        # The encoder is already frozen and set to eval above, so a no-op eval is safe.
-        def _eval_noop():
-            return llm2vec_model
-
-        llm2vec_model.eval = _eval_noop
-        llm2vec_model._kimodo_eval_noop_patched = True
-
-    encode_fn = getattr(llm2vec_model, "encode", None)
-    if callable(encode_fn) and not getattr(llm2vec_model, "_kimodo_encode_numpy_patched", False):
-        def _encode_numpy(*args, **kwargs):
-            out = encode_fn(*args, **kwargs)
-            if isinstance(out, torch.Tensor):
-                return out.detach().cpu().numpy()
-            return out
-
-        llm2vec_model.encode = _encode_numpy
-        llm2vec_model._kimodo_encode_numpy_patched = True
-
     return text_encoder
 
 
@@ -367,6 +345,83 @@ def copy_matching_params(dst_model: nn.Module, src_model: nn.Module) -> tuple[in
     return copied, len(dst_state)
 
 
+def _replace_layer_index(key: str, src_idx: int, dst_idx: int) -> str:
+    pattern = re.compile(rf"(\.layers\.){src_idx}(\.)")
+    return pattern.sub(rf"\g<1>{dst_idx}\g<2>", key, count=1)
+
+
+def copy_teacher_layers_to_student(
+    dst_model: nn.Module,
+    src_model: nn.Module,
+    *,
+    teacher_layer_indices_for_student: list[int],
+) -> tuple[int, int]:
+    """Overlay student layer params from selected teacher layers.
+
+    This assumes student layers are indexed [0..N-1], and maps
+    teacher_layer_indices_for_student[i] -> student layer i.
+    """
+    dst_state = dst_model.state_dict()
+    src_state = src_model.state_dict()
+    copied = 0
+    total_candidates = 0
+
+    for student_layer_idx, teacher_layer_idx in enumerate(teacher_layer_indices_for_student):
+        for src_key, src_val in src_state.items():
+            mapped_key = _replace_layer_index(src_key, teacher_layer_idx, student_layer_idx)
+            if mapped_key == src_key:
+                continue
+            if mapped_key not in dst_state:
+                continue
+            total_candidates += 1
+            if dst_state[mapped_key].shape == src_val.shape:
+                dst_state[mapped_key] = src_val.detach().clone()
+                copied += 1
+
+    dst_model.load_state_dict(dst_state, strict=True)
+    return copied, total_candidates
+
+
+def get_distill_loss_weights(
+    cfg: DictConfig,
+    *,
+    global_step: int,
+    total_steps: int,
+) -> tuple[float, float]:
+    default_teacher = float(cfg.loss.teacher_weight)
+    default_gt = float(cfg.loss.gt_weight)
+
+    schedule_cfg = cfg.loss.get("weight_schedule", None)
+    if schedule_cfg is None or not bool(schedule_cfg.get("enabled", False)):
+        return default_teacher, default_gt
+
+    schedule_type = str(schedule_cfg.get("type", "linear")).lower()
+    if schedule_type != "linear":
+        raise ValueError(f"Unsupported loss.weight_schedule.type={schedule_type!r}; only 'linear' is supported.")
+
+    start_step = int(schedule_cfg.get("start_step", 0))
+    end_step = int(schedule_cfg.get("end_step", max(total_steps - 1, 0)))
+    if end_step <= start_step:
+        teacher_w = float(schedule_cfg.get("teacher_end", default_teacher))
+        gt_w = float(schedule_cfg.get("gt_end", default_gt))
+        return teacher_w, gt_w
+
+    teacher_start = float(schedule_cfg.get("teacher_start", default_teacher))
+    teacher_end = float(schedule_cfg.get("teacher_end", default_teacher))
+    gt_start = float(schedule_cfg.get("gt_start", default_gt))
+    gt_end = float(schedule_cfg.get("gt_end", default_gt))
+
+    if global_step <= start_step:
+        return teacher_start, gt_start
+    if global_step >= end_step:
+        return teacher_end, gt_end
+
+    alpha = float(global_step - start_step) / float(end_step - start_step)
+    teacher_w = teacher_start + (teacher_end - teacher_start) * alpha
+    gt_w = gt_start + (gt_end - gt_start) * alpha
+    return teacher_w, gt_w
+
+
 def save_checkpoint(
     path: Path,
     *,
@@ -457,6 +512,30 @@ def main() -> None:
 
     if bool(cfg.distillation.get("student_init_from_teacher", True)):
         copied, total = copy_matching_params(student, teacher)
+        init_mode = str(cfg.distillation.get("student_init_mode", "matching_params")).lower()
+        if init_mode == "teacher_layer_map":
+            teacher_layer_indices = cfg.distillation.get("teacher_layer_indices_for_student", None)
+            if teacher_layer_indices is None:
+                raise ValueError(
+                    "distillation.student_init_mode='teacher_layer_map' requires "
+                    "distillation.teacher_layer_indices_for_student."
+                )
+            layer_copied, layer_total = copy_teacher_layers_to_student(
+                student,
+                teacher,
+                teacher_layer_indices_for_student=[int(x) for x in teacher_layer_indices],
+            )
+            if is_main_process(rank):
+                log.info(
+                    "Applied teacher_layer_map overlay: copied %d/%d layer params",
+                    layer_copied,
+                    layer_total,
+                )
+        elif init_mode != "matching_params":
+            raise ValueError(
+                f"Unsupported distillation.student_init_mode={init_mode!r}; "
+                "use 'matching_params' or 'teacher_layer_map'."
+            )
         if is_main_process(rank):
             log.info("Warm-started student from teacher: copied %d/%d params", copied, total)
 
@@ -636,6 +715,11 @@ def main() -> None:
                 )
 
         optimizer.zero_grad(set_to_none=True)
+        teacher_weight, gt_weight = get_distill_loss_weights(
+            cfg,
+            global_step=global_step,
+            total_steps=total_steps,
+        )
         with autocast_ctx():
             student_x0 = train_model(
                 x=x_t,
@@ -652,6 +736,8 @@ def main() -> None:
                 teacher_x0=teacher_x0,
                 gt_x0=gt_x0,
                 pad_mask=pad_mask,
+                teacher_weight=teacher_weight,
+                gt_weight=gt_weight,
             )
             loss = loss_dict["total"]
 
@@ -685,16 +771,20 @@ def main() -> None:
                     "loss_total": float(reduced_total.item()),
                     "loss_teacher_total": float(reduced_teacher_total.item()),
                     "loss_gt_total": float(reduced_gt_total.item()),
+                    "teacher_weight": float(loss_dict["teacher_weight"].detach().item()),
+                    "gt_weight": float(loss_dict["gt_weight"].detach().item()),
                     "lr": float(optimizer.param_groups[0]["lr"]),
                     "time": time.time(),
                 }
                 log.info(
-                    "step=%d kf=%d loss=%.6f teacher=%.6f gt=%.6f lr=%.3e",
+                    "step=%d kf=%d loss=%.6f teacher=%.6f gt=%.6f tw=%.3f gw=%.3f lr=%.3e",
                     metric["step"],
                     metric["num_keyframes"],
                     metric["loss_total"],
                     metric["loss_teacher_total"],
                     metric["loss_gt_total"],
+                    metric["teacher_weight"],
+                    metric["gt_weight"],
                     metric["lr"],
                 )
                 with log_path.open("a", encoding="utf-8") as f:

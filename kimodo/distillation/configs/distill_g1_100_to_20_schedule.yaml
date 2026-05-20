@@ -102,14 +102,14 @@ loss:
   teacher_weight: 0.8
   gt_weight: 0.2
   weight_schedule:
-    enabled: false
+    enabled: true
     type: linear
     start_step: 0
-    end_step: 1000
-    teacher_start: 0.8
-    teacher_end: 0.8
-    gt_start: 0.2
-    gt_end: 0.2
+    end_step: 8000
+    teacher_start: 0.9
+    teacher_end: 0.3
+    gt_start: 0.1
+    gt_end: 0.7
   teacher_gammas: [10.0, 2.0, 10.0, 3.0, 10.0, 4.0, 5.0]
   gt_gammas: [10.0, 2.0, 10.0, 3.0, 10.0, 4.0, 5.0]
 
@@ -117,24 +117,24 @@ distillation:
   teacher_steps: 100
   student_steps: 20
   student_init_from_teacher: true
-  student_init_mode: matching_params
-  teacher_layer_indices_for_student: null
+  student_init_mode: teacher_layer_map
+  teacher_layer_indices_for_student: [0, 2, 4, 6, 8, 10, 12, 14]
 
 phase2:
   enabled: true
   start_step: 0
-  end_step: 200
+  end_step: 1000
   start_keyframes: 1
   end_keyframes: 20
 
 training:
   seed: 42
   deterministic: false
-  output_dir: ./outputs/g1_distill_16to8_100to20_smoke_1k_bs32
+  output_dir: ./outputs/g1_distill_16to8_100to20_schedule
 
   resume: null
-  total_steps: 1000
-  batch_size: 32
+  total_steps: 10000
+  batch_size: 64
   optimizer: adam_atan2
   betas: [0.9, 0.999]
   lr: 2.0e-5
@@ -146,17 +146,19 @@ training:
   cfg_dropout_text_prob: 0.1
   cfg_dropout_motion_prob: 0.0
   log_every: 10
-  save_every: 200
+  save_every: 1000
+  skip_text_encode_errors: true
+  max_text_encode_retries: 16
   max_checkpoints_to_keep: 5
 
 wandb:
   enabled: true
   project: kimodo-g1-distill
   entity: null
-  name: g1_distill_16to8_100to20_smoke_1k_bs32
+  name: g1_distill_16to8_100to20-2GPU-schedule
   group: null
   job_type: train
-  tags: [g1, distill, 16to8, 100to20, smoke, bs32, 1k]
+  tags: [g1, distill, 16to8, 100to20, schedule]
   mode: online
   resume: allow
   id: null

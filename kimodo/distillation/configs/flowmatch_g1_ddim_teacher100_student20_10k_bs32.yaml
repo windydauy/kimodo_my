@@ -49,8 +49,8 @@ model:
 
 text_encoder:
   _target_: kimodo.model.LLM2VecEncoder
-  base_model_name_or_path: McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp
-  peft_model_name_or_path: McGill-NLP/LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised
+  base_model_name_or_path: ./huggingface/hub/models--McGill-NLP--LLM2Vec-Meta-Llama-3-8B-Instruct-mntp/snapshots/31474e395ada192e8ed1586db6be79fb3b70c9c0
+  peft_model_name_or_path: ./huggingface/hub/models--McGill-NLP--LLM2Vec-Meta-Llama-3-8B-Instruct-mntp-supervised/snapshots/baa8ebf04a1c2500e61288e7dad65e8ae42601a7
   dtype: bfloat16
   llm_dim: 4096
 
@@ -99,41 +99,54 @@ data:
       foot_contacts_sparse: 1.0
 
 loss:
-  teacher_weight: 0.8
-  gt_weight: 0.2
-  weight_schedule:
-    enabled: false
-    type: linear
-    start_step: 0
-    end_step: 1000
-    teacher_start: 0.8
-    teacher_end: 0.8
-    gt_start: 0.2
-    gt_end: 0.2
+  teacher_weight: 0.9
+  gt_weight: 0.1
   teacher_gammas: [10.0, 2.0, 10.0, 3.0, 10.0, 4.0, 5.0]
   gt_gammas: [10.0, 2.0, 10.0, 3.0, 10.0, 4.0, 5.0]
+  weight_schedule:
+    enabled: true
+    type: linear
+    start_step: 0
+    end_step: 8000
+    teacher_start: 0.9
+    teacher_end: 0.5
+    gt_start: 0.1
+    gt_end: 0.5
 
 distillation:
   teacher_steps: 100
   student_steps: 20
   student_init_from_teacher: true
   student_init_mode: matching_params
-  teacher_layer_indices_for_student: null
+  # Optional skip-layer init: set mode to teacher_layer_map and use indices below
+  # student_init_mode: teacher_layer_map
+  # teacher_layer_indices_for_student: [0, 2, 4, 6, 8, 10, 12, 14]
+
+flow_matching:
+  mode: continuous
+  time_sampling: uniform
+  teacher_velocity_target:
+    smoothing: none
+    method: ddim_piecewise_linear_field
+  gt_velocity_target:
+    noise_path: linear
+  inference:
+    solver: euler
+    steps: 20
 
 phase2:
   enabled: true
   start_step: 0
-  end_step: 200
+  end_step: 1000
   start_keyframes: 1
   end_keyframes: 20
 
 training:
   seed: 42
   deterministic: false
-  output_dir: ./outputs/g1_distill_16to8_100to20_smoke_1k_bs32
-
+  output_dir: ./outputs/g1_flowmatch_distill_ddim_teacher100_student20_10k_bs32
   resume: null
-  total_steps: 1000
+  total_steps: 10000
   batch_size: 32
   optimizer: adam_atan2
   betas: [0.9, 0.999]
@@ -146,17 +159,19 @@ training:
   cfg_dropout_text_prob: 0.1
   cfg_dropout_motion_prob: 0.0
   log_every: 10
-  save_every: 200
+  save_every: 1000
+  skip_text_encode_errors: true
+  max_text_encode_retries: 16
   max_checkpoints_to_keep: 5
 
 wandb:
   enabled: true
-  project: kimodo-g1-distill
+  project: kimodo-g1-flowmatch
   entity: null
-  name: g1_distill_16to8_100to20_smoke_1k_bs32
+  name: g1_fm_ddim_t100_s20_5050_10k_bs32
   group: null
   job_type: train
-  tags: [g1, distill, 16to8, 100to20, smoke, bs32, 1k]
+  tags: [g1, flowmatch, continuous, ddim_teacher, teacher100, student20, "5050", heun, smoke]
   mode: online
   resume: allow
   id: null

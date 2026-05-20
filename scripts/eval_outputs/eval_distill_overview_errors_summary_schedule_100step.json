@@ -1,0 +1,300 @@
+{
+  "settings": {
+    "npz_glob": "custom_motion/robot-object/sub10*_original.npz",
+    "timeline_jsonl": "custom_motion/timeline_sub10.jsonl",
+    "include_unmatched_clips": false,
+    "model": "Kimodo-G1-RP-v1",
+    "distill_config": "kimodo/distillation/configs/distill_g1_100_to_20_schedule.yaml",
+    "distill_ckpt": "outputs/g1_distill_16to8_100to20_schedule/ema_final.pt",
+    "target_fps": 30.0,
+    "keyframe_step": 10,
+    "diffusion_steps": 100,
+    "num_runs_per_task": 5,
+    "hard_project_observed_motion": false,
+    "hard_project_prefix_frames": 0,
+    "hard_project_mode": "dense_fullbody_prefix"
+  },
+  "total_clips": 33,
+  "success_clips": 33,
+  "failed_clips": 0,
+  "per_clip": [
+    {
+      "clip": "sub10_largebox_000_original",
+      "mean_error_m": 0.13042922297255366,
+      "max_error_m": 0.5337479811086774,
+      "min_error_m": 0.018398506072897516,
+      "num_rows": 84,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_001_original",
+      "mean_error_m": 0.11205464137752422,
+      "max_error_m": 0.49319040483715015,
+      "min_error_m": 0.021573711974176076,
+      "num_rows": 88,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_002_original",
+      "mean_error_m": 0.1151842759771721,
+      "max_error_m": 0.7439083614371401,
+      "min_error_m": 0.013004685462374798,
+      "num_rows": 88,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_003_original",
+      "mean_error_m": 0.12068936207997734,
+      "max_error_m": 0.7113270773864029,
+      "min_error_m": 0.009678475079218837,
+      "num_rows": 88,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_004_original",
+      "mean_error_m": 0.10396889518383927,
+      "max_error_m": 0.416474825191303,
+      "min_error_m": 0.008443586224308934,
+      "num_rows": 92,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_005_original",
+      "mean_error_m": 0.115226743397243,
+      "max_error_m": 0.5082506121067778,
+      "min_error_m": 0.011024618473435466,
+      "num_rows": 88,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_006_original",
+      "mean_error_m": 0.10633930692487445,
+      "max_error_m": 0.48156999889636226,
+      "min_error_m": 0.009114876758246671,
+      "num_rows": 96,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_007_original",
+      "mean_error_m": 0.09630304801012382,
+      "max_error_m": 0.4406982472344286,
+      "min_error_m": 0.010739735906919255,
+      "num_rows": 116,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_008_original",
+      "mean_error_m": 0.15974170716732766,
+      "max_error_m": 0.5444754474512296,
+      "min_error_m": 0.01923945540114181,
+      "num_rows": 84,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_009_original",
+      "mean_error_m": 0.13521840258420412,
+      "max_error_m": 0.5937607869341321,
+      "min_error_m": 0.024025511057851966,
+      "num_rows": 92,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_010_original",
+      "mean_error_m": 0.13139693732816177,
+      "max_error_m": 0.512301982520334,
+      "min_error_m": 0.014315240693395417,
+      "num_rows": 76,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_014_original",
+      "mean_error_m": 0.11036733335407733,
+      "max_error_m": 0.5556631668619493,
+      "min_error_m": 0.01311483368170733,
+      "num_rows": 84,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_022_original",
+      "mean_error_m": 0.14245774256421162,
+      "max_error_m": 0.6094919919807665,
+      "min_error_m": 0.04182058386611471,
+      "num_rows": 80,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_024_original",
+      "mean_error_m": 0.11996292878705739,
+      "max_error_m": 0.6428222638152503,
+      "min_error_m": 0.01131203032686608,
+      "num_rows": 88,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_026_original",
+      "mean_error_m": 0.11688613113046138,
+      "max_error_m": 0.5964250913163556,
+      "min_error_m": 0.013357123372813159,
+      "num_rows": 96,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_031_original",
+      "mean_error_m": 0.12879404323939414,
+      "max_error_m": 0.3649477840455385,
+      "min_error_m": 0.04161150492718697,
+      "num_rows": 72,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_033_original",
+      "mean_error_m": 0.11156013374731413,
+      "max_error_m": 0.214010052702058,
+      "min_error_m": 0.02753873807143714,
+      "num_rows": 88,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_034_original",
+      "mean_error_m": 0.11993095357833088,
+      "max_error_m": 0.2450010232179726,
+      "min_error_m": 0.03817241117372721,
+      "num_rows": 80,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_035_original",
+      "mean_error_m": 0.09140097116166528,
+      "max_error_m": 0.3117261489080967,
+      "min_error_m": 0.023405391303200886,
+      "num_rows": 100,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_036_original",
+      "mean_error_m": 0.11295404639415212,
+      "max_error_m": 0.27385891956982233,
+      "min_error_m": 0.026917852718140393,
+      "num_rows": 92,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_037_original",
+      "mean_error_m": 0.11692638213082432,
+      "max_error_m": 0.2572564862340548,
+      "min_error_m": 0.04386778708019075,
+      "num_rows": 80,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_038_original",
+      "mean_error_m": 0.1178202855459816,
+      "max_error_m": 0.2619464337220439,
+      "min_error_m": 0.04667255455661416,
+      "num_rows": 68,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_039_original",
+      "mean_error_m": 0.10619015591231669,
+      "max_error_m": 0.23379441620965835,
+      "min_error_m": 0.02919811824853668,
+      "num_rows": 60,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_040_original",
+      "mean_error_m": 0.134897227713822,
+      "max_error_m": 0.2354124559738513,
+      "min_error_m": 0.06545715486726314,
+      "num_rows": 52,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_041_original",
+      "mean_error_m": 0.10244018552299902,
+      "max_error_m": 0.27478083203517467,
+      "min_error_m": 0.015452474065708228,
+      "num_rows": 84,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_042_original",
+      "mean_error_m": 0.079632038011394,
+      "max_error_m": 0.18018609181635037,
+      "min_error_m": 0.024819616113426635,
+      "num_rows": 88,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_043_original",
+      "mean_error_m": 0.09156226025356058,
+      "max_error_m": 0.43422361418094485,
+      "min_error_m": 0.0260972664367622,
+      "num_rows": 100,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_045_original",
+      "mean_error_m": 0.13538433327755112,
+      "max_error_m": 0.7197153823024005,
+      "min_error_m": 0.014022998108717464,
+      "num_rows": 100,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_046_original",
+      "mean_error_m": 0.09298106481976472,
+      "max_error_m": 0.5256326320499204,
+      "min_error_m": 0.016000428899498043,
+      "num_rows": 112,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_047_original",
+      "mean_error_m": 0.0821480771498292,
+      "max_error_m": 0.23941740331361866,
+      "min_error_m": 0.014054155202384894,
+      "num_rows": 100,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_048_original",
+      "mean_error_m": 0.14345794907594822,
+      "max_error_m": 0.44439264285170144,
+      "min_error_m": 0.014942188668382528,
+      "num_rows": 120,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_049_original",
+      "mean_error_m": 0.1456119318660703,
+      "max_error_m": 0.6282737138118362,
+      "min_error_m": 0.01567952197639299,
+      "num_rows": 152,
+      "num_runs": 5
+    },
+    {
+      "clip": "sub10_largebox_050_original",
+      "mean_error_m": 0.1532781908286392,
+      "max_error_m": 0.5095228938236349,
+      "min_error_m": 0.031939578545100065,
+      "num_rows": 120,
+      "num_runs": 5
+    }
+  ],
+  "overall_all_ee": {
+    "count": 15040,
+    "mean_error_m": 0.11788379752705021,
+    "max_error_m": 0.7663154899138269,
+    "min_error_m": 0.004509685901740185
+  },
+  "overall_hands_only": {
+    "count": 7520,
+    "mean_error_m": 0.13056313091395658,
+    "max_error_m": 0.7663154899138269,
+    "min_error_m": 0.006212844310893485
+  },
+  "overall_mean_of_task_means_m": 0.11767263360813233,
+  "failures": []
+}

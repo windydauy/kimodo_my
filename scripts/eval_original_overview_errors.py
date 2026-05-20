@@ -13,6 +13,7 @@ from pathlib import Path
 import mujoco
 import numpy as np
 import torch
+from omegaconf import OmegaConf
 from scipy.spatial.transform import Rotation as R
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
@@ -24,10 +25,15 @@ for _p in (REPO_ROOT, SCRIPTS_DIR):
 from kimodo import load_model
 from kimodo.constraints import FullBodyConstraintSet, load_constraints_lst
 from kimodo.exports.mujoco import MujocoQposConverter
+from kimodo.model.kimodo_model import Kimodo
+from kimodo.model.loading import instantiate_from_dict
 from kimodo.skeleton import G1Skeleton34
 from kimodo.training.custom_motion_ee_pose_npz import save_custom_motion_ee_pose_npz
 from kimodo.training.custom_motion_npz import load_g1_npz_motion, resample_motion
-from generate_g1_with_first_heading import extract_first_heading_angle_from_npz, resolve_num_frames
+from generate_g1_with_first_heading import (
+    extract_first_heading_angle_from_npz,
+    resolve_num_frames,
+)
 from npz_to_ee_pose_constraints import (
     EE_FIELD_MAP,
     mujoco_xyz_to_kimodo,
@@ -70,6 +76,22 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--target_fps", type=float, default=30.0, help="Target FPS for constraints.")
     parser.add_argument("--keyframe_step", type=int, default=30, help="Source keyframe step for constraints.")
     parser.add_argument("--diffusion_steps", type=int, default=100, help="Diffusion steps for generation.")
+    parser.add_argument(
+        "--num_runs_per_task",
+        type=int,
+        default=5,
+        help="How many generation/eval runs to execute per clip, then average per-clip metrics (default: 5).",
+    )
+    parser.add_argument(
+        "--distill_config",
+        default=None,
+        help="Optional distillation YAML. If provided with --distill_ckpt, evaluate the distilled student model.",
+    )
+    parser.add_argument(
+        "--distill_ckpt",
+        default=None,
+        help="Optional distillation checkpoint (.pt). Supports both student checkpoints and ema_final.pt.",
+    )
     parser.add_argument("--xml", default="kimodo/assets/skeletons/g1skel34/xml/g1.xml", help="MuJoCo XML path.")
     parser.add_argument(
         "--hard_project_observed_motion",
@@ -305,6 +327,13 @@ def _safe_stats(values: list[float]) -> dict[str, float | int | None]:
     }
 
 
+def _safe_mean(values: list[float]) -> float | None:
+    if not values:
+        return None
+    arr = np.asarray(values, dtype=np.float64)
+    return float(arr.mean())
+
+
 def _fmt_metric(v: float | None) -> str:
     return "nan" if v is None else f"{v:.6f}"
 
@@ -326,6 +355,89 @@ def _load_timeline_filenames(timeline_jsonl: str | Path) -> set[str]:
             if isinstance(name, str) and name.strip():
                 names.add(name.strip())
     return names
+
+
+def _load_eval_model(args: argparse.Namespace, device: str):
+    if bool(args.distill_config) != bool(args.distill_ckpt):
+        raise ValueError("--distill_config and --distill_ckpt must be provided together.")
+
+    if args.distill_config and args.distill_ckpt:
+        model = _build_model_from_distill_flexible(
+            distill_config_path=args.distill_config,
+            distill_ckpt_path=args.distill_ckpt,
+            device=device,
+        )
+        return model, "distill-student"
+
+    return load_model(args.model, device=device, default_family="Kimodo", return_resolved_name=True)
+
+
+def _resolve_student_state_dict_from_ckpt(ckpt_path: str) -> tuple[dict[str, torch.Tensor], str]:
+    ckpt = torch.load(ckpt_path, map_location="cpu", weights_only=False)
+    if not isinstance(ckpt, dict):
+        raise ValueError(f"Unsupported distill checkpoint format: {ckpt_path}")
+
+    if "student" in ckpt and isinstance(ckpt["student"], dict):
+        return ckpt["student"], "student"
+
+    if "ema" in ckpt and isinstance(ckpt["ema"], dict) and "shadow" in ckpt["ema"]:
+        shadow = ckpt["ema"]["shadow"]
+        if not isinstance(shadow, dict):
+            raise ValueError(f"Invalid ema.shadow format in checkpoint: {ckpt_path}")
+        return shadow, "ema.shadow"
+
+    if all(isinstance(k, str) for k in ckpt.keys()) and any(isinstance(v, torch.Tensor) for v in ckpt.values()):
+        return ckpt, "state_dict"
+
+    raise ValueError(
+        "Distill checkpoint must contain one of: {'student': state_dict}, "
+        "{'ema': {'shadow': state_dict}}, or be a plain state_dict. "
+        f"Got keys={list(ckpt.keys())[:10]} from {ckpt_path}."
+    )
+
+
+def _build_model_from_distill_flexible(*, distill_config_path: str, distill_ckpt_path: str, device: str) -> Kimodo:
+    cfg = OmegaConf.load(distill_config_path)
+    student_cfg = OmegaConf.to_container(cfg.model.student_denoiser, resolve=True)
+    text_encoder_cfg = OmegaConf.to_container(cfg.text_encoder, resolve=True)
+
+    denoiser = instantiate_from_dict(student_cfg).to(device)
+    text_encoder = instantiate_from_dict(text_encoder_cfg)
+    text_encoder.to(device)
+    text_encoder.eval()
+
+    loaded_state, source = _resolve_student_state_dict_from_ckpt(distill_ckpt_path)
+    missing, unexpected = denoiser.load_state_dict(loaded_state, strict=False)
+    if unexpected:
+        raise ValueError(
+            f"Unexpected keys when loading {source} from {distill_ckpt_path}: first 10={unexpected[:10]}"
+        )
+    if missing:
+        raise ValueError(
+            f"Missing keys when loading {source} from {distill_ckpt_path}: first 10={missing[:10]}"
+        )
+    denoiser.eval()
+
+    model = Kimodo(
+        denoiser=denoiser,
+        text_encoder=text_encoder,
+        num_base_steps=int(cfg.model.num_base_steps),
+        device=device,
+        cfg_type="separated",
+    )
+    return model
+
+
+def _validate_g1_model(model, resolved_model: str) -> None:
+    skeleton_name = str(getattr(getattr(model, "skeleton", None), "name", "")).lower()
+    if skeleton_name.startswith("g1"):
+        return
+
+    raise ValueError(
+        "This evaluator expects a G1 model because it uses G1 MuJoCo export/check logic. "
+        f"Resolved model was: {resolved_model!r}. "
+        "Please pass --model Kimodo-G1-RP-v1."
+    )
 
 
 def main() -> None:
@@ -351,13 +463,8 @@ def main() -> None:
             )
 
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
-    model, resolved_model = load_model(args.model, device=device, default_family="Kimodo", return_resolved_name=True)
-    if "g1" not in str(resolved_model).lower():
-        raise ValueError(
-            "This evaluator expects a G1 model because it uses G1 MuJoCo export/check logic. "
-            f"Resolved model was: {resolved_model!r}. "
-            "Please pass --model Kimodo-G1-RP-v1."
-        )
+    model, resolved_model = _load_eval_model(args, device=device)
+    _validate_g1_model(model, resolved_model)
     if args.verbose:
         print(f"Loaded model: {resolved_model} on {device}")
 
@@ -414,27 +521,51 @@ def main() -> None:
                 constraint_lst = load_constraints_lst(str(constraints_json_gen), model.skeleton)
                 first_heading = extract_first_heading_angle_from_npz(npz_path)
 
-                output = model(
-                    prompt,
-                    num_frames,
-                    constraint_lst=constraint_lst,
-                    num_denoising_steps=int(args.diffusion_steps),
-                    num_samples=1,
-                    multi_prompt=False,
-                    post_processing=False,
-                    return_numpy=True,
-                    first_heading_angle=torch.tensor([first_heading], dtype=torch.float32, device=device),
-                    hard_project_observed_motion=bool(hard_prefix_enabled),
-                    hard_project_prefix_frames=int(args.hard_project_prefix_frames) if hard_prefix_enabled else 0,
-                    progress_bar=_no_progress,
-                )
-                qpos = converter.dict_to_qpos(output, device)
-                qpos_np = np.asarray(qpos, dtype=np.float64)
-                if qpos_np.ndim == 3:
-                    qpos_np = qpos_np[0]
+                run_means: list[float] = []
+                run_maxes: list[float] = []
+                run_mins: list[float] = []
+                run_num_rows: list[int] = []
+                clip_hand_errors_all_runs: list[float] = []
+                clip_errors_all_runs: list[float] = []
 
-                clip_errors, clip_hand_errors = _evaluate_qpos_errors(qpos_np, constraints_json_ee, mj_model)
-                clip_stats = _safe_stats(clip_errors)
+                for _ in range(int(args.num_runs_per_task)):
+                    output = model(
+                        prompt,
+                        num_frames,
+                        constraint_lst=constraint_lst,
+                        num_denoising_steps=int(args.diffusion_steps),
+                        num_samples=1,
+                        multi_prompt=False,
+                        post_processing=False,
+                        return_numpy=True,
+                        first_heading_angle=torch.tensor([first_heading], dtype=torch.float32, device=device),
+                        hard_project_observed_motion=bool(hard_prefix_enabled),
+                        hard_project_prefix_frames=int(args.hard_project_prefix_frames) if hard_prefix_enabled else 0,
+                        progress_bar=_no_progress,
+                    )
+                    qpos = converter.dict_to_qpos(output, device)
+                    qpos_np = np.asarray(qpos, dtype=np.float64)
+                    if qpos_np.ndim == 3:
+                        qpos_np = qpos_np[0]
+
+                    run_clip_errors, run_clip_hand_errors = _evaluate_qpos_errors(qpos_np, constraints_json_ee, mj_model)
+                    run_stats = _safe_stats(run_clip_errors)
+                    if run_stats["mean_error_m"] is not None:
+                        run_means.append(float(run_stats["mean_error_m"]))
+                    if run_stats["max_error_m"] is not None:
+                        run_maxes.append(float(run_stats["max_error_m"]))
+                    if run_stats["min_error_m"] is not None:
+                        run_mins.append(float(run_stats["min_error_m"]))
+                    run_num_rows.append(int(run_stats["count"]))
+                    clip_errors_all_runs.extend(run_clip_errors)
+                    clip_hand_errors_all_runs.extend(run_clip_hand_errors)
+
+                clip_stats = {
+                    "count": int(np.mean(run_num_rows)) if run_num_rows else 0,
+                    "mean_error_m": _safe_mean(run_means),
+                    "max_error_m": _safe_mean(run_maxes),
+                    "min_error_m": _safe_mean(run_mins),
+                }
                 all_clip_rows.append(
                     {
                         "clip": clip_name,
@@ -442,10 +573,11 @@ def main() -> None:
                         "max_error_m": clip_stats["max_error_m"],
                         "min_error_m": clip_stats["min_error_m"],
                         "num_rows": clip_stats["count"],
+                        "num_runs": int(args.num_runs_per_task),
                     }
                 )
-                all_errors_all_clips.extend(clip_errors)
-                all_hand_errors_all_clips.extend(clip_hand_errors)
+                all_errors_all_clips.extend(clip_errors_all_runs)
+                all_hand_errors_all_clips.extend(clip_hand_errors_all_runs)
                 if args.verbose:
                     print(
                         f"  mean={_fmt_metric(clip_stats['mean_error_m'])} "
@@ -463,15 +595,20 @@ def main() -> None:
 
     overall_stats = _safe_stats(all_errors_all_clips)
     overall_hand_stats = _safe_stats(all_hand_errors_all_clips)
+    per_clip_means = [float(x["mean_error_m"]) for x in all_clip_rows if x.get("mean_error_m") is not None]
+    overall_mean_of_task_means = _safe_mean(per_clip_means)
     result = {
         "settings": {
             "npz_glob": args.npz_glob,
             "timeline_jsonl": args.timeline_jsonl,
             "include_unmatched_clips": bool(args.include_unmatched_clips),
             "model": args.model,
+            "distill_config": args.distill_config,
+            "distill_ckpt": args.distill_ckpt,
             "target_fps": args.target_fps,
             "keyframe_step": args.keyframe_step,
             "diffusion_steps": args.diffusion_steps,
+            "num_runs_per_task": int(args.num_runs_per_task),
             "hard_project_observed_motion": bool(args.hard_project_observed_motion),
             "hard_project_prefix_frames": int(args.hard_project_prefix_frames),
             "hard_project_mode": "dense_fullbody_prefix",
@@ -482,6 +619,7 @@ def main() -> None:
         "per_clip": all_clip_rows,
         "overall_all_ee": overall_stats,
         "overall_hands_only": overall_hand_stats,
+        "overall_mean_of_task_means_m": overall_mean_of_task_means,
         "failures": failures,
     }
 
@@ -505,6 +643,7 @@ def main() -> None:
             f"max_error_m: {_fmt_metric(overall_hand_stats['max_error_m'])}  "
             f"min_error_m: {_fmt_metric(overall_hand_stats['min_error_m'])}"
         )
+        print(f"mean(task_mean_error_m): {_fmt_metric(overall_mean_of_task_means)}")
         print(f"Saved summary JSON: {output_path}")
     else:
         print(f"Done: {len(all_clip_rows)}/{total} succeeded, {len(failures)} failed. JSON: {output_path}")

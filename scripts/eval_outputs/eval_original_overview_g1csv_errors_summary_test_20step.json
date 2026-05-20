@@ -1,0 +1,1318 @@
+{
+  "settings": {
+    "csv_root": "dataset/g1/csv",
+    "timelines_jsonl": "dataset/timelines.jsonl",
+    "csv_pattern": "*.csv",
+    "sample_ratio": 0.001,
+    "max_tasks": null,
+    "seed": 42,
+    "model": "Kimodo-G1-RP-v1",
+    "distill_config": null,
+    "distill_ckpt": null,
+    "source_fps": 120.0,
+    "target_fps": 30.0,
+    "keyframe_step": 10,
+    "max_eval_frames": 300,
+    "diffusion_steps": 20,
+    "num_runs_per_task": 5,
+    "xml": "kimodo/assets/skeletons/g1skel34/xml/g1.xml"
+  },
+  "total_csv": 142224,
+  "sampled_tasks": 142,
+  "success_tasks": 142,
+  "failed_tasks": 0,
+  "per_task": [
+    {
+      "task": "210707/choreography1_relax_001__A006_M.csv",
+      "clip": "choreography1_relax_001__A006_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.015527012513356525,
+      "max_error_m": 0.03322029860331109,
+      "min_error_m": 0.0032390912745971787,
+      "num_runs": 5
+    },
+    {
+      "task": "210707/having_a_sit_table_normal_001__A008_M.csv",
+      "clip": "having_a_sit_table_normal_001__A008_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.02396689137916517,
+      "max_error_m": 0.09783321493141967,
+      "min_error_m": 0.0019301181603997753,
+      "num_runs": 5
+    },
+    {
+      "task": "220713/jump_left_002__A022_M.csv",
+      "clip": "jump_left_002__A022_M",
+      "num_constraint_points": 376,
+      "mean_error_m": 0.04132082401492598,
+      "max_error_m": 0.1169264301744799,
+      "min_error_m": 0.0025593123894153535,
+      "num_runs": 5
+    },
+    {
+      "task": "220720/itching_head_001__A029.csv",
+      "clip": "itching_head_001__A029",
+      "num_constraint_points": 220,
+      "mean_error_m": 0.019930651171441834,
+      "max_error_m": 0.06222049099759948,
+      "min_error_m": 0.002937713157763543,
+      "num_runs": 5
+    },
+    {
+      "task": "220720/mohak_backward_stop_001__A032.csv",
+      "clip": "mohak_backward_stop_001__A032",
+      "num_constraint_points": 256,
+      "mean_error_m": 0.04565394432499217,
+      "max_error_m": 0.11289700736593833,
+      "min_error_m": 0.00893728910371025,
+      "num_runs": 5
+    },
+    {
+      "task": "220720/sitting_legs_cross_arm_side_start_002__A031_M.csv",
+      "clip": "sitting_legs_cross_arm_side_start_002__A031_M",
+      "num_constraint_points": 260,
+      "mean_error_m": 0.04490707525131034,
+      "max_error_m": 0.12111315729012298,
+      "min_error_m": 0.009162147296582487,
+      "num_runs": 5
+    },
+    {
+      "task": "220720/walk_sideway_045_start_003__A029_M.csv",
+      "clip": "walk_sideway_045_start_003__A029_M",
+      "num_constraint_points": 220,
+      "mean_error_m": 0.02871191231643063,
+      "max_error_m": 0.0780916741221948,
+      "min_error_m": 0.0034995590152184187,
+      "num_runs": 5
+    },
+    {
+      "task": "220721/change_idle_to_idle_left_005__A036.csv",
+      "clip": "change_idle_to_idle_left_005__A036",
+      "num_constraint_points": 380,
+      "mean_error_m": 0.01255421834440051,
+      "max_error_m": 0.02898390985915163,
+      "min_error_m": 0.0015937020542915019,
+      "num_runs": 5
+    },
+    {
+      "task": "220721/mohak_forward_stop_003__A036_M.csv",
+      "clip": "mohak_forward_stop_003__A036_M",
+      "num_constraint_points": 300,
+      "mean_error_m": 0.03685441941036096,
+      "max_error_m": 0.10678342156134968,
+      "min_error_m": 0.003296730714490341,
+      "num_runs": 5
+    },
+    {
+      "task": "220727/body_stretch_4_003__A038_M.csv",
+      "clip": "body_stretch_4_003__A038_M",
+      "num_constraint_points": 476,
+      "mean_error_m": 0.029734314600602323,
+      "max_error_m": 0.1186259370042918,
+      "min_error_m": 0.002673296809044245,
+      "num_runs": 5
+    },
+    {
+      "task": "220727/itching_left_calf_003__A039.csv",
+      "clip": "itching_left_calf_003__A039",
+      "num_constraint_points": 376,
+      "mean_error_m": 0.015830506955888002,
+      "max_error_m": 0.04408867292585226,
+      "min_error_m": 0.002132862074338655,
+      "num_runs": 5
+    },
+    {
+      "task": "220727/jog_forward_loop_001__A037.csv",
+      "clip": "jog_forward_loop_001__A037",
+      "num_constraint_points": 396,
+      "mean_error_m": 0.05186546209401326,
+      "max_error_m": 0.17922391359147832,
+      "min_error_m": 0.0034418948726661577,
+      "num_runs": 5
+    },
+    {
+      "task": "220727/turn_start_walk_135_004__A039_M.csv",
+      "clip": "turn_start_walk_135_004__A039_M",
+      "num_constraint_points": 260,
+      "mean_error_m": 0.03089603034695198,
+      "max_error_m": 0.07988845120356522,
+      "min_error_m": 0.0038669415539818756,
+      "num_runs": 5
+    },
+    {
+      "task": "220727/walk_sideway_090_loop_001__A038_M.csv",
+      "clip": "walk_sideway_090_loop_001__A038_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.024513793018643936,
+      "max_error_m": 0.07293971555544064,
+      "min_error_m": 0.003918725913336577,
+      "num_runs": 5
+    },
+    {
+      "task": "220728/idle_one_foot_right_003__A044_M.csv",
+      "clip": "idle_one_foot_right_003__A044_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.013331245777513493,
+      "max_error_m": 0.03652056619046233,
+      "min_error_m": 0.0006086665447876682,
+      "num_runs": 5
+    },
+    {
+      "task": "221010/itching_left_forearm_R_004__A045_M.csv",
+      "clip": "itching_left_forearm_R_004__A045_M",
+      "num_constraint_points": 336,
+      "mean_error_m": 0.031601560665635256,
+      "max_error_m": 0.06180789018843404,
+      "min_error_m": 0.010334513335441055,
+      "num_runs": 5
+    },
+    {
+      "task": "221010/kneeling_stop_003__A046_M.csv",
+      "clip": "kneeling_stop_003__A046_M",
+      "num_constraint_points": 240,
+      "mean_error_m": 0.022753501872969532,
+      "max_error_m": 0.07046967565920774,
+      "min_error_m": 0.0021109528947848176,
+      "num_runs": 5
+    },
+    {
+      "task": "221010/kneeling_stop_003__A047_M.csv",
+      "clip": "kneeling_stop_003__A047_M",
+      "num_constraint_points": 152,
+      "mean_error_m": 0.029152543002778558,
+      "max_error_m": 0.07141618301239948,
+      "min_error_m": 0.005925786645218106,
+      "num_runs": 5
+    },
+    {
+      "task": "221010/triumph_two_handed_003__A046_M.csv",
+      "clip": "triumph_two_handed_003__A046_M",
+      "num_constraint_points": 192,
+      "mean_error_m": 0.019077873375973355,
+      "max_error_m": 0.05818501005092484,
+      "min_error_m": 0.001853156985985442,
+      "num_runs": 5
+    },
+    {
+      "task": "221011/idle_hands_on_back_start_001__A051_M.csv",
+      "clip": "idle_hands_on_back_start_001__A051_M",
+      "num_constraint_points": 272,
+      "mean_error_m": 0.028912411759186296,
+      "max_error_m": 0.039322642478935695,
+      "min_error_m": 0.018954020564739348,
+      "num_runs": 5
+    },
+    {
+      "task": "221011/jump_ff_360_001__A051_M.csv",
+      "clip": "jump_ff_360_001__A051_M",
+      "num_constraint_points": 172,
+      "mean_error_m": 0.017330790711244454,
+      "max_error_m": 0.04801172135373809,
+      "min_error_m": 0.002923510779244777,
+      "num_runs": 5
+    },
+    {
+      "task": "221011/sit_cross_legged_start_003__A051.csv",
+      "clip": "sit_cross_legged_start_003__A051",
+      "num_constraint_points": 172,
+      "mean_error_m": 0.04283063667815083,
+      "max_error_m": 0.08298547471360149,
+      "min_error_m": 0.003490623109473663,
+      "num_runs": 5
+    },
+    {
+      "task": "221011/walk_ff_start_270_004__A052_M.csv",
+      "clip": "walk_ff_start_270_004__A052_M",
+      "num_constraint_points": 256,
+      "mean_error_m": 0.02734329221442433,
+      "max_error_m": 0.07278623678331923,
+      "min_error_m": 0.003145217882526829,
+      "num_runs": 5
+    },
+    {
+      "task": "221011/walk_ff_start_315_001__A049_M.csv",
+      "clip": "walk_ff_start_315_001__A049_M",
+      "num_constraint_points": 284,
+      "mean_error_m": 0.02808032112510981,
+      "max_error_m": 0.06948218923111692,
+      "min_error_m": 0.00259393568876225,
+      "num_runs": 5
+    },
+    {
+      "task": "221012/don_t_know_2_001__A056_M.csv",
+      "clip": "don_t_know_2_001__A056_M",
+      "num_constraint_points": 216,
+      "mean_error_m": 0.01472547374391354,
+      "max_error_m": 0.029324965099241762,
+      "min_error_m": 0.0021076105458311583,
+      "num_runs": 5
+    },
+    {
+      "task": "221012/turn_jump_270_003__A054.csv",
+      "clip": "turn_jump_270_003__A054",
+      "num_constraint_points": 224,
+      "mean_error_m": 0.024501655829947195,
+      "max_error_m": 0.06978135967383184,
+      "min_error_m": 0.0026750275060914794,
+      "num_runs": 5
+    },
+    {
+      "task": "221012/walk_ff_loop_180_R_001__A054.csv",
+      "clip": "walk_ff_loop_180_R_001__A054",
+      "num_constraint_points": 224,
+      "mean_error_m": 0.02648069358373299,
+      "max_error_m": 0.07239003643243239,
+      "min_error_m": 0.003604279111568185,
+      "num_runs": 5
+    },
+    {
+      "task": "221012/walk_ff_start_180_R_004__A056_M.csv",
+      "clip": "walk_ff_start_180_R_004__A056_M",
+      "num_constraint_points": 280,
+      "mean_error_m": 0.024881523617816377,
+      "max_error_m": 0.07460090336061553,
+      "min_error_m": 0.002879553741941394,
+      "num_runs": 5
+    },
+    {
+      "task": "221115/walk_hands_on_back_loop_002__A061.csv",
+      "clip": "walk_hands_on_back_loop_002__A061",
+      "num_constraint_points": 212,
+      "mean_error_m": 0.022066568612736932,
+      "max_error_m": 0.0720143431813079,
+      "min_error_m": 0.0029467323760828832,
+      "num_runs": 5
+    },
+    {
+      "task": "221116/sit_cross_legged_stop_003__A063.csv",
+      "clip": "sit_cross_legged_stop_003__A063",
+      "num_constraint_points": 220,
+      "mean_error_m": 0.040577086035773105,
+      "max_error_m": 0.12998034839482836,
+      "min_error_m": 0.0028777884108365194,
+      "num_runs": 5
+    },
+    {
+      "task": "221116/walk_ff_loop_360_003__A063_M.csv",
+      "clip": "walk_ff_loop_360_003__A063_M",
+      "num_constraint_points": 160,
+      "mean_error_m": 0.021455567062204504,
+      "max_error_m": 0.06256602767505345,
+      "min_error_m": 0.0019064667852837682,
+      "num_runs": 5
+    },
+    {
+      "task": "221116/walk_hands_on_back_loop_003__A064.csv",
+      "clip": "walk_hands_on_back_loop_003__A064",
+      "num_constraint_points": 192,
+      "mean_error_m": 0.03720587846733619,
+      "max_error_m": 0.0914650518797434,
+      "min_error_m": 0.0054834381890277225,
+      "num_runs": 5
+    },
+    {
+      "task": "221117/dancing_routine_2_004__A065_M.csv",
+      "clip": "dancing_routine_2_004__A065_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.024735176856246727,
+      "max_error_m": 0.05948814128220703,
+      "min_error_m": 0.0027820203079703953,
+      "num_runs": 5
+    },
+    {
+      "task": "221117/jog_arc_cw_start_002__A068.csv",
+      "clip": "jog_arc_cw_start_002__A068",
+      "num_constraint_points": 164,
+      "mean_error_m": 0.026294304248879068,
+      "max_error_m": 0.06977152738865908,
+      "min_error_m": 0.004661945343525714,
+      "num_runs": 5
+    },
+    {
+      "task": "221117/reaching_down_R_004__A066_M.csv",
+      "clip": "reaching_down_R_004__A066_M",
+      "num_constraint_points": 288,
+      "mean_error_m": 0.03928478292802558,
+      "max_error_m": 0.15421421280792547,
+      "min_error_m": 0.00285732647277345,
+      "num_runs": 5
+    },
+    {
+      "task": "221117/walk_ff_start_360_002__A067.csv",
+      "clip": "walk_ff_start_360_002__A067",
+      "num_constraint_points": 240,
+      "mean_error_m": 0.020852991159699102,
+      "max_error_m": 0.052977069695696974,
+      "min_error_m": 0.0022612882675648745,
+      "num_runs": 5
+    },
+    {
+      "task": "221117/walk_ff_stop_180_R_001__A067_M.csv",
+      "clip": "walk_ff_stop_180_R_001__A067_M",
+      "num_constraint_points": 192,
+      "mean_error_m": 0.02673568487188322,
+      "max_error_m": 0.052525883258027525,
+      "min_error_m": 0.0037257712504617973,
+      "num_runs": 5
+    },
+    {
+      "task": "221117/walk_hands_on_back_loop_002__A065.csv",
+      "clip": "walk_hands_on_back_loop_002__A065",
+      "num_constraint_points": 200,
+      "mean_error_m": 0.021230807007680742,
+      "max_error_m": 0.06751950230448521,
+      "min_error_m": 0.002426509120458862,
+      "num_runs": 5
+    },
+    {
+      "task": "221118/injured_R_leg_walk_ff_loop_360_006__A071_M.csv",
+      "clip": "injured_R_leg_walk_ff_loop_360_006__A071_M",
+      "num_constraint_points": 240,
+      "mean_error_m": 0.027908912828115095,
+      "max_error_m": 0.05470847497801166,
+      "min_error_m": 0.002336553277908947,
+      "num_runs": 5
+    },
+    {
+      "task": "221118/jump_ff_270_002__A072.csv",
+      "clip": "jump_ff_270_002__A072",
+      "num_constraint_points": 144,
+      "mean_error_m": 0.02252046576693166,
+      "max_error_m": 0.05927540181369241,
+      "min_error_m": 0.00476822745894116,
+      "num_runs": 5
+    },
+    {
+      "task": "221118/looking_around_horizontally_001__A072_M.csv",
+      "clip": "looking_around_horizontally_001__A072_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.017796725672302376,
+      "max_error_m": 0.04718728281594019,
+      "min_error_m": 0.0018115410397167935,
+      "num_runs": 5
+    },
+    {
+      "task": "221125/neutral_idle_turn_360_003__A073_M.csv",
+      "clip": "neutral_idle_turn_360_003__A073_M",
+      "num_constraint_points": 204,
+      "mean_error_m": 0.02646807113790663,
+      "max_error_m": 0.0798989759099899,
+      "min_error_m": 0.0032993440171410807,
+      "num_runs": 5
+    },
+    {
+      "task": "221128/inj_right_leg_idle_turn_360_max_001__A076_M.csv",
+      "clip": "inj_right_leg_idle_turn_360_max_001__A076_M",
+      "num_constraint_points": 284,
+      "mean_error_m": 0.03818900761494343,
+      "max_error_m": 0.10070011415987742,
+      "min_error_m": 0.004919913356995583,
+      "num_runs": 5
+    },
+    {
+      "task": "230102/dancing_routine_1_003__A095.csv",
+      "clip": "dancing_routine_1_003__A095",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.032001181197973724,
+      "max_error_m": 0.0758553002931166,
+      "min_error_m": 0.0024873635842240648,
+      "num_runs": 5
+    },
+    {
+      "task": "230102/walk_ff_loop_225_003__A094.csv",
+      "clip": "walk_ff_loop_225_003__A094",
+      "num_constraint_points": 256,
+      "mean_error_m": 0.02961136180240268,
+      "max_error_m": 0.08307334595654262,
+      "min_error_m": 0.004002691427659846,
+      "num_runs": 5
+    },
+    {
+      "task": "230103/egipt_dance_R_001__A101.csv",
+      "clip": "egipt_dance_R_001__A101",
+      "num_constraint_points": 216,
+      "mean_error_m": 0.03415927370948474,
+      "max_error_m": 0.09509157439374058,
+      "min_error_m": 0.004694972168558019,
+      "num_runs": 5
+    },
+    {
+      "task": "230103/fixing_something_002__A099_M.csv",
+      "clip": "fixing_something_002__A099_M",
+      "num_constraint_points": 272,
+      "mean_error_m": 0.024517394502907842,
+      "max_error_m": 0.04330520052415805,
+      "min_error_m": 0.006366504424906136,
+      "num_runs": 5
+    },
+    {
+      "task": "230103/wiping_shoes_R_002__A099_M.csv",
+      "clip": "wiping_shoes_R_002__A099_M",
+      "num_constraint_points": 192,
+      "mean_error_m": 0.021998798058934486,
+      "max_error_m": 0.08014910953524088,
+      "min_error_m": 0.0021661853835833003,
+      "num_runs": 5
+    },
+    {
+      "task": "230104/jump_ff_270_003__A103.csv",
+      "clip": "jump_ff_270_003__A103",
+      "num_constraint_points": 120,
+      "mean_error_m": 0.025931965756637376,
+      "max_error_m": 0.07933038076043426,
+      "min_error_m": 0.0020624689842183444,
+      "num_runs": 5
+    },
+    {
+      "task": "230112/looking_R_001__A119.csv",
+      "clip": "looking_R_001__A119",
+      "num_constraint_points": 144,
+      "mean_error_m": 0.048176119079678836,
+      "max_error_m": 0.07405304948421385,
+      "min_error_m": 0.017463559442249015,
+      "num_runs": 5
+    },
+    {
+      "task": "230118/exercise_1_001__A121_M.csv",
+      "clip": "exercise_1_001__A121_M",
+      "num_constraint_points": 244,
+      "mean_error_m": 0.02816911999850505,
+      "max_error_m": 0.09984890063670718,
+      "min_error_m": 0.0028709152108032663,
+      "num_runs": 5
+    },
+    {
+      "task": "230118/jump_ff_180_R_003__A122.csv",
+      "clip": "jump_ff_180_R_003__A122",
+      "num_constraint_points": 136,
+      "mean_error_m": 0.027690132874862227,
+      "max_error_m": 0.0866305489851671,
+      "min_error_m": 0.004554299584576666,
+      "num_runs": 5
+    },
+    {
+      "task": "230119/dancing_routine_1_003__A125_M.csv",
+      "clip": "dancing_routine_1_003__A125_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.0233790833290651,
+      "max_error_m": 0.05758655988679422,
+      "min_error_m": 0.002175830983264583,
+      "num_runs": 5
+    },
+    {
+      "task": "230119/mohak_idle_stop_002__A125_M.csv",
+      "clip": "mohak_idle_stop_002__A125_M",
+      "num_constraint_points": 252,
+      "mean_error_m": 0.030157504033469913,
+      "max_error_m": 0.07213494493721855,
+      "min_error_m": 0.0036137231126207947,
+      "num_runs": 5
+    },
+    {
+      "task": "230123/jump_ff_270_003__A136_M.csv",
+      "clip": "jump_ff_270_003__A136_M",
+      "num_constraint_points": 152,
+      "mean_error_m": 0.020312069950970485,
+      "max_error_m": 0.06963851359031238,
+      "min_error_m": 0.00327525450296665,
+      "num_runs": 5
+    },
+    {
+      "task": "230124/lift_crate_walk_ff_loop_180_R_002__A140_M.csv",
+      "clip": "lift_crate_walk_ff_loop_180_R_002__A140_M",
+      "num_constraint_points": 368,
+      "mean_error_m": 0.03501021199060056,
+      "max_error_m": 0.09701405777307395,
+      "min_error_m": 0.003799687556638649,
+      "num_runs": 5
+    },
+    {
+      "task": "230124/lift_crate_walk_ff_loop_270_002__A144_M.csv",
+      "clip": "lift_crate_walk_ff_loop_270_002__A144_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.03807110146106822,
+      "max_error_m": 0.08396793536083573,
+      "min_error_m": 0.002287930455183696,
+      "num_runs": 5
+    },
+    {
+      "task": "230125/jog_ff_stop_180_R_004__A148.csv",
+      "clip": "jog_ff_stop_180_R_004__A148",
+      "num_constraint_points": 152,
+      "mean_error_m": 0.04458291947517928,
+      "max_error_m": 0.13110766585281183,
+      "min_error_m": 0.005419781191750156,
+      "num_runs": 5
+    },
+    {
+      "task": "230125/walk_ff_stop_360_002__A149_M.csv",
+      "clip": "walk_ff_stop_360_002__A149_M",
+      "num_constraint_points": 244,
+      "mean_error_m": 0.02894581872917726,
+      "max_error_m": 0.07952306308474155,
+      "min_error_m": 0.0038875325665177554,
+      "num_runs": 5
+    },
+    {
+      "task": "230126/idle_right_to_spelling_idle_003__A150.csv",
+      "clip": "idle_right_to_spelling_idle_003__A150",
+      "num_constraint_points": 208,
+      "mean_error_m": 0.02094994872178091,
+      "max_error_m": 0.05548013764997055,
+      "min_error_m": 0.002344931501007841,
+      "num_runs": 5
+    },
+    {
+      "task": "230131/lift_crate_start_001__A161.csv",
+      "clip": "lift_crate_start_001__A161",
+      "num_constraint_points": 240,
+      "mean_error_m": 0.013073530449758713,
+      "max_error_m": 0.02874189708619703,
+      "min_error_m": 0.0014509719259048746,
+      "num_runs": 5
+    },
+    {
+      "task": "230131/sit_cross_legged_loop_002__A162.csv",
+      "clip": "sit_cross_legged_loop_002__A162",
+      "num_constraint_points": 456,
+      "mean_error_m": 0.01961321896747085,
+      "max_error_m": 0.042115541836989914,
+      "min_error_m": 0.002531117342770316,
+      "num_runs": 5
+    },
+    {
+      "task": "230201/looking_R_001__A167_M.csv",
+      "clip": "looking_R_001__A167_M",
+      "num_constraint_points": 220,
+      "mean_error_m": 0.017657356465341698,
+      "max_error_m": 0.04343067065119271,
+      "min_error_m": 0.0023757383294061756,
+      "num_runs": 5
+    },
+    {
+      "task": "230202/injured_R_leg_turn_jog_360_002__A170_M.csv",
+      "clip": "injured_R_leg_turn_jog_360_002__A170_M",
+      "num_constraint_points": 204,
+      "mean_error_m": 0.04051998232258373,
+      "max_error_m": 0.12337386535680299,
+      "min_error_m": 0.0038502141326188432,
+      "num_runs": 5
+    },
+    {
+      "task": "230209/jog_ff_stop_180_R_002__A175_M.csv",
+      "clip": "jog_ff_stop_180_R_002__A175_M",
+      "num_constraint_points": 272,
+      "mean_error_m": 0.024822479150589143,
+      "max_error_m": 0.06840037436181474,
+      "min_error_m": 0.00304750209516256,
+      "num_runs": 5
+    },
+    {
+      "task": "230210/idle_hands_on_back_start_005__A182_M.csv",
+      "clip": "idle_hands_on_back_start_005__A182_M",
+      "num_constraint_points": 208,
+      "mean_error_m": 0.02329455711549709,
+      "max_error_m": 0.036202101324390445,
+      "min_error_m": 0.009781502711430764,
+      "num_runs": 5
+    },
+    {
+      "task": "230210/idle_hands_on_back_stop_001__A179_M.csv",
+      "clip": "idle_hands_on_back_stop_001__A179_M",
+      "num_constraint_points": 256,
+      "mean_error_m": 0.02827999599318632,
+      "max_error_m": 0.044970465148945794,
+      "min_error_m": 0.0180929191514293,
+      "num_runs": 5
+    },
+    {
+      "task": "230213/jog_ff_start_180_R_002__A184_M.csv",
+      "clip": "jog_ff_start_180_R_002__A184_M",
+      "num_constraint_points": 236,
+      "mean_error_m": 0.03223117883907815,
+      "max_error_m": 0.15254644556668123,
+      "min_error_m": 0.005428294343610883,
+      "num_runs": 5
+    },
+    {
+      "task": "230214/sit_on_chair_stop_R_003__A189_M.csv",
+      "clip": "sit_on_chair_stop_R_003__A189_M",
+      "num_constraint_points": 312,
+      "mean_error_m": 0.018226852242555703,
+      "max_error_m": 0.05481084424722242,
+      "min_error_m": 0.0015417419231401508,
+      "num_runs": 5
+    },
+    {
+      "task": "230215/crouch_ff_start_360_R_002__A196_M.csv",
+      "clip": "crouch_ff_start_360_R_002__A196_M",
+      "num_constraint_points": 176,
+      "mean_error_m": 0.03307390878673175,
+      "max_error_m": 0.09623188443938915,
+      "min_error_m": 0.005388066204828573,
+      "num_runs": 5
+    },
+    {
+      "task": "230216/jump_ff_360_001__A201_M.csv",
+      "clip": "jump_ff_360_001__A201_M",
+      "num_constraint_points": 124,
+      "mean_error_m": 0.016028549464548687,
+      "max_error_m": 0.050690815152521176,
+      "min_error_m": 0.0030196709932391996,
+      "num_runs": 5
+    },
+    {
+      "task": "230216/on_all_fours_turn_270_R_003__A201_M.csv",
+      "clip": "on_all_fours_turn_270_R_003__A201_M",
+      "num_constraint_points": 392,
+      "mean_error_m": 0.03638405411686915,
+      "max_error_m": 0.10150432510667491,
+      "min_error_m": 0.003293439771517729,
+      "num_runs": 5
+    },
+    {
+      "task": "230217/jog_ff_stop_180_R_001__A204.csv",
+      "clip": "jog_ff_stop_180_R_001__A204",
+      "num_constraint_points": 180,
+      "mean_error_m": 0.03830525502698123,
+      "max_error_m": 0.12141917909380144,
+      "min_error_m": 0.004613280580229863,
+      "num_runs": 5
+    },
+    {
+      "task": "230223/idle_crawl_to_idle_crawl_right_R_004__A217.csv",
+      "clip": "idle_crawl_to_idle_crawl_right_R_004__A217",
+      "num_constraint_points": 220,
+      "mean_error_m": 0.12079591505168263,
+      "max_error_m": 0.6594381803073632,
+      "min_error_m": 0.03461887484118516,
+      "num_runs": 5
+    },
+    {
+      "task": "230223/injured_torso_idle_turn_270_R_001__A217.csv",
+      "clip": "injured_torso_idle_turn_270_R_001__A217",
+      "num_constraint_points": 288,
+      "mean_error_m": 0.03209438267248999,
+      "max_error_m": 0.06870098556071458,
+      "min_error_m": 0.0023879948845963892,
+      "num_runs": 5
+    },
+    {
+      "task": "230223/injured_torso_jog_ff_stop_225_R_001__A217_M.csv",
+      "clip": "injured_torso_jog_ff_stop_225_R_001__A217_M",
+      "num_constraint_points": 244,
+      "mean_error_m": 0.0335719733114964,
+      "max_error_m": 0.07229103354282694,
+      "min_error_m": 0.003451058011713336,
+      "num_runs": 5
+    },
+    {
+      "task": "230301/come_down_50cm_box_R_003__A231_M.csv",
+      "clip": "come_down_50cm_box_R_003__A231_M",
+      "num_constraint_points": 156,
+      "mean_error_m": 0.029238990324893393,
+      "max_error_m": 0.08389431937895889,
+      "min_error_m": 0.0014938188271775845,
+      "num_runs": 5
+    },
+    {
+      "task": "230301/injured_R_leg_walk_ff_loop_270_R_003__A232_M.csv",
+      "clip": "injured_R_leg_walk_ff_loop_270_R_003__A232_M",
+      "num_constraint_points": 328,
+      "mean_error_m": 0.037104600675489804,
+      "max_error_m": 0.10786128230733741,
+      "min_error_m": 0.003905348653386038,
+      "num_runs": 5
+    },
+    {
+      "task": "230301/injured_torso_jog_ff_stop_225_R_002__A231.csv",
+      "clip": "injured_torso_jog_ff_stop_225_R_002__A231",
+      "num_constraint_points": 320,
+      "mean_error_m": 0.030685843530923202,
+      "max_error_m": 0.07007718761901235,
+      "min_error_m": 0.0028539650311049337,
+      "num_runs": 5
+    },
+    {
+      "task": "230301/injured_torso_walk_ff_start_180_R_001__A230_M.csv",
+      "clip": "injured_torso_walk_ff_start_180_R_001__A230_M",
+      "num_constraint_points": 260,
+      "mean_error_m": 0.029417217498279302,
+      "max_error_m": 0.0971674684016628,
+      "min_error_m": 0.0035208119327507425,
+      "num_runs": 5
+    },
+    {
+      "task": "230302/chefs_kiss_R_003__A235.csv",
+      "clip": "chefs_kiss_R_003__A235",
+      "num_constraint_points": 128,
+      "mean_error_m": 0.01638184996458401,
+      "max_error_m": 0.04281625993604062,
+      "min_error_m": 0.004399179501430111,
+      "num_runs": 5
+    },
+    {
+      "task": "230302/egypt_dance_R_001__A234.csv",
+      "clip": "egypt_dance_R_001__A234",
+      "num_constraint_points": 220,
+      "mean_error_m": 0.027321866632358853,
+      "max_error_m": 0.07105355025439639,
+      "min_error_m": 0.0030631949372712554,
+      "num_runs": 5
+    },
+    {
+      "task": "230302/rubbing_eyes_fist_003__A235_M.csv",
+      "clip": "rubbing_eyes_fist_003__A235_M",
+      "num_constraint_points": 112,
+      "mean_error_m": 0.020584496062195888,
+      "max_error_m": 0.04086717340297094,
+      "min_error_m": 0.007493163923050196,
+      "num_runs": 5
+    },
+    {
+      "task": "230306/crouch_ff_start_360_R_003__A246_M.csv",
+      "clip": "crouch_ff_start_360_R_003__A246_M",
+      "num_constraint_points": 416,
+      "mean_error_m": 0.023163627809186477,
+      "max_error_m": 0.05904231921311502,
+      "min_error_m": 0.002065266586146878,
+      "num_runs": 5
+    },
+    {
+      "task": "230309/body_stretch_V001_002__A261_M.csv",
+      "clip": "body_stretch_V001_002__A261_M",
+      "num_constraint_points": 468,
+      "mean_error_m": 0.0197727574362327,
+      "max_error_m": 0.06721204409857483,
+      "min_error_m": 0.0029991246632417668,
+      "num_runs": 5
+    },
+    {
+      "task": "230313/jog_ff_loop_225_R_001__A267.csv",
+      "clip": "jog_ff_loop_225_R_001__A267",
+      "num_constraint_points": 160,
+      "mean_error_m": 0.029636724944123692,
+      "max_error_m": 0.06908150729377258,
+      "min_error_m": 0.0043955301441826414,
+      "num_runs": 5
+    },
+    {
+      "task": "230313/walk_ff_loop_270_R_002__A267_M.csv",
+      "clip": "walk_ff_loop_270_R_002__A267_M",
+      "num_constraint_points": 300,
+      "mean_error_m": 0.03546360361535296,
+      "max_error_m": 0.08971375173562585,
+      "min_error_m": 0.0036189885162712437,
+      "num_runs": 5
+    },
+    {
+      "task": "230313/walk_ff_stop_225_R_003__A268.csv",
+      "clip": "walk_ff_stop_225_R_003__A268",
+      "num_constraint_points": 336,
+      "mean_error_m": 0.023181218837364855,
+      "max_error_m": 0.06840373481598291,
+      "min_error_m": 0.0020970938252744347,
+      "num_runs": 5
+    },
+    {
+      "task": "230313/walk_ff_stop_315_R_004__A268.csv",
+      "clip": "walk_ff_stop_315_R_004__A268",
+      "num_constraint_points": 220,
+      "mean_error_m": 0.0314244226897019,
+      "max_error_m": 0.0717445991569261,
+      "min_error_m": 0.004128170451996038,
+      "num_runs": 5
+    },
+    {
+      "task": "230314/don_t_know_no_hands_002__A271.csv",
+      "clip": "don_t_know_no_hands_002__A271",
+      "num_constraint_points": 264,
+      "mean_error_m": 0.019922975053885995,
+      "max_error_m": 0.03064155676676582,
+      "min_error_m": 0.0035941984484839443,
+      "num_runs": 5
+    },
+    {
+      "task": "230314/looking_around_on_ground_001__A272.csv",
+      "clip": "looking_around_on_ground_001__A272",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.019243248048883662,
+      "max_error_m": 0.04008650293778625,
+      "min_error_m": 0.002059913231655142,
+      "num_runs": 5
+    },
+    {
+      "task": "230314/looking_around_on_ground_003__A272_M.csv",
+      "clip": "looking_around_on_ground_003__A272_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.018904450539402023,
+      "max_error_m": 0.04388869186773409,
+      "min_error_m": 0.0024624036625214103,
+      "num_runs": 5
+    },
+    {
+      "task": "230314/looking_by_binoculars_002__A269.csv",
+      "clip": "looking_by_binoculars_002__A269",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.031961586428433844,
+      "max_error_m": 0.07260025981252574,
+      "min_error_m": 0.0037435500448604895,
+      "num_runs": 5
+    },
+    {
+      "task": "230315/eating_apple_R_001__A274.csv",
+      "clip": "eating_apple_R_001__A274",
+      "num_constraint_points": 332,
+      "mean_error_m": 0.02225965643600831,
+      "max_error_m": 0.04701555323255881,
+      "min_error_m": 0.003789796169627485,
+      "num_runs": 5
+    },
+    {
+      "task": "230316/reach_jump_R_004__A280_M.csv",
+      "clip": "reach_jump_R_004__A280_M",
+      "num_constraint_points": 268,
+      "mean_error_m": 0.015799384987513772,
+      "max_error_m": 0.09600926832781817,
+      "min_error_m": 0.0013651903072153,
+      "num_runs": 5
+    },
+    {
+      "task": "230320/grating_vegetables_R_002__A290.csv",
+      "clip": "grating_vegetables_R_002__A290",
+      "num_constraint_points": 320,
+      "mean_error_m": 0.03520923698040358,
+      "max_error_m": 0.05537387352252836,
+      "min_error_m": 0.009632953961629689,
+      "num_runs": 5
+    },
+    {
+      "task": "230320/nailing_wall_from_side_R_001__A291.csv",
+      "clip": "nailing_wall_from_side_R_001__A291",
+      "num_constraint_points": 352,
+      "mean_error_m": 0.02855139512316498,
+      "max_error_m": 0.06741306777723317,
+      "min_error_m": 0.0022397414752586163,
+      "num_runs": 5
+    },
+    {
+      "task": "230322/bow_saw_cutting_tree_vertical_loop_R_002__A297.csv",
+      "clip": "bow_saw_cutting_tree_vertical_loop_R_002__A297",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.02639940610947143,
+      "max_error_m": 0.06735177622286799,
+      "min_error_m": 0.0016504909374680805,
+      "num_runs": 5
+    },
+    {
+      "task": "230322/reach_jump_R_003__A297_M.csv",
+      "clip": "reach_jump_R_003__A297_M",
+      "num_constraint_points": 180,
+      "mean_error_m": 0.01788339694491021,
+      "max_error_m": 0.06934752355623905,
+      "min_error_m": 0.0013752512529540402,
+      "num_runs": 5
+    },
+    {
+      "task": "230322/sweep_floor_back_R_001__A298.csv",
+      "clip": "sweep_floor_back_R_001__A298",
+      "num_constraint_points": 344,
+      "mean_error_m": 0.032556849779192855,
+      "max_error_m": 0.07575404369183893,
+      "min_error_m": 0.005823715366360399,
+      "num_runs": 5
+    },
+    {
+      "task": "230324/handstand_ff_loop_270_R_003__A305_M.csv",
+      "clip": "handstand_ff_loop_270_R_003__A305_M",
+      "num_constraint_points": 292,
+      "mean_error_m": 0.19097771566229893,
+      "max_error_m": 0.3802474026664786,
+      "min_error_m": 0.04438411175904047,
+      "num_runs": 5
+    },
+    {
+      "task": "230411/dance_basic_chaines_180_R_fast_002__A307_M.csv",
+      "clip": "dance_basic_chaines_180_R_fast_002__A307_M",
+      "num_constraint_points": 448,
+      "mean_error_m": 0.032144454368848066,
+      "max_error_m": 0.1518204296659614,
+      "min_error_m": 0.0016242075584077028,
+      "num_runs": 5
+    },
+    {
+      "task": "230412/dance_hiphop_camel_walk_360_R_002__A315_M.csv",
+      "clip": "dance_hiphop_camel_walk_360_R_002__A315_M",
+      "num_constraint_points": 248,
+      "mean_error_m": 0.022327903950153577,
+      "max_error_m": 0.0603700158818322,
+      "min_error_m": 0.0019978531415679084,
+      "num_runs": 5
+    },
+    {
+      "task": "230413/dance_hiphop_locking_sequence_i_R_003__A318_M.csv",
+      "clip": "dance_hiphop_locking_sequence_i_R_003__A318_M",
+      "num_constraint_points": 184,
+      "mean_error_m": 0.035111650325297394,
+      "max_error_m": 0.11494724736835878,
+      "min_error_m": 0.003081157603470468,
+      "num_runs": 5
+    },
+    {
+      "task": "230413/dance_hiphop_slide_run_R_fast_002__A320_M.csv",
+      "clip": "dance_hiphop_slide_run_R_fast_002__A320_M",
+      "num_constraint_points": 320,
+      "mean_error_m": 0.035712947068571456,
+      "max_error_m": 0.11288108630332956,
+      "min_error_m": 0.004121823146159509,
+      "num_runs": 5
+    },
+    {
+      "task": "230414/dance_vouge_butterfly_step_270_R_004__A324.csv",
+      "clip": "dance_vouge_butterfly_step_270_R_004__A324",
+      "num_constraint_points": 268,
+      "mean_error_m": 0.02552398172757981,
+      "max_error_m": 0.07249882128446786,
+      "min_error_m": 0.003036451134254248,
+      "num_runs": 5
+    },
+    {
+      "task": "230414/dance_vouge_pivot_walks_180_R_loop_003__A321.csv",
+      "clip": "dance_vouge_pivot_walks_180_R_loop_003__A321",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.03779556252558433,
+      "max_error_m": 0.12293058731743363,
+      "min_error_m": 0.000686880314115795,
+      "num_runs": 5
+    },
+    {
+      "task": "230414/victory_dance_wednesday_dance_R_001__A322_M.csv",
+      "clip": "victory_dance_wednesday_dance_R_001__A322_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.03236542267636109,
+      "max_error_m": 0.098954103896747,
+      "min_error_m": 0.003387866408894936,
+      "num_runs": 5
+    },
+    {
+      "task": "230417/injured_torso_turn_jump_270_R_002__A329.csv",
+      "clip": "injured_torso_turn_jump_270_R_002__A329",
+      "num_constraint_points": 232,
+      "mean_error_m": 0.01989184879158367,
+      "max_error_m": 0.06427348328791783,
+      "min_error_m": 0.002912954469638083,
+      "num_runs": 5
+    },
+    {
+      "task": "230418/injured_R_leg_idle_right_R_003__A334_M.csv",
+      "clip": "injured_R_leg_idle_right_R_003__A334_M",
+      "num_constraint_points": 348,
+      "mean_error_m": 0.011235969779585953,
+      "max_error_m": 0.02629321470051093,
+      "min_error_m": 0.003786717940123076,
+      "num_runs": 5
+    },
+    {
+      "task": "230418/injured_R_leg_jump_ff_360_R_001__A334.csv",
+      "clip": "injured_R_leg_jump_ff_360_R_001__A334",
+      "num_constraint_points": 144,
+      "mean_error_m": 0.017195610495128508,
+      "max_error_m": 0.05906403494208788,
+      "min_error_m": 0.00367445994069219,
+      "num_runs": 5
+    },
+    {
+      "task": "230418/jump_ff_270_R_003__A333.csv",
+      "clip": "jump_ff_270_R_003__A333",
+      "num_constraint_points": 240,
+      "mean_error_m": 0.02211461585180401,
+      "max_error_m": 0.05943231629811023,
+      "min_error_m": 0.0028277210073651775,
+      "num_runs": 5
+    },
+    {
+      "task": "230418/run_start_180_R_003__A331.csv",
+      "clip": "run_start_180_R_003__A331",
+      "num_constraint_points": 148,
+      "mean_error_m": 0.1399800624312945,
+      "max_error_m": 0.3583742222679187,
+      "min_error_m": 0.0256860986357454,
+      "num_runs": 5
+    },
+    {
+      "task": "230419/injured_torso_walk_ff_start_360_R_003__A339_M.csv",
+      "clip": "injured_torso_walk_ff_start_360_R_003__A339_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.025762526006842458,
+      "max_error_m": 0.052150962112955834,
+      "min_error_m": 0.002654102051505663,
+      "num_runs": 5
+    },
+    {
+      "task": "230420/jog_ff_loop_180_R_004__A342_M.csv",
+      "clip": "jog_ff_loop_180_R_004__A342_M",
+      "num_constraint_points": 152,
+      "mean_error_m": 0.031065835769227928,
+      "max_error_m": 0.08048791852063063,
+      "min_error_m": 0.0041240804111185945,
+      "num_runs": 5
+    },
+    {
+      "task": "230424/jump_ff_360_R_002__A347_M.csv",
+      "clip": "jump_ff_360_R_002__A347_M",
+      "num_constraint_points": 176,
+      "mean_error_m": 0.01969545355810606,
+      "max_error_m": 0.055555542933109194,
+      "min_error_m": 0.0019163103641469403,
+      "num_runs": 5
+    },
+    {
+      "task": "230509/come_down_50cm_box_R_003__A362_M.csv",
+      "clip": "come_down_50cm_box_R_003__A362_M",
+      "num_constraint_points": 128,
+      "mean_error_m": 0.02433133103389099,
+      "max_error_m": 0.06409804076067435,
+      "min_error_m": 0.0028532174922926545,
+      "num_runs": 5
+    },
+    {
+      "task": "230529/no_see_001__A405.csv",
+      "clip": "no_see_001__A405",
+      "num_constraint_points": 340,
+      "mean_error_m": 0.031125535156582507,
+      "max_error_m": 0.05922215138804445,
+      "min_error_m": 0.015906015512246165,
+      "num_runs": 5
+    },
+    {
+      "task": "230529/puke_R_003__A407_M.csv",
+      "clip": "puke_R_003__A407_M",
+      "num_constraint_points": 308,
+      "mean_error_m": 0.013583458095256185,
+      "max_error_m": 0.04819491454944394,
+      "min_error_m": 0.0009627272300232326,
+      "num_runs": 5
+    },
+    {
+      "task": "230713/nod_in_thought_R_001__A429_M.csv",
+      "clip": "nod_in_thought_R_001__A429_M",
+      "num_constraint_points": 468,
+      "mean_error_m": 0.024704956253299146,
+      "max_error_m": 0.0597441496499886,
+      "min_error_m": 0.004457157074674643,
+      "num_runs": 5
+    },
+    {
+      "task": "230713/present_left_R_001__A432.csv",
+      "clip": "present_left_R_001__A432",
+      "num_constraint_points": 304,
+      "mean_error_m": 0.017360014595242206,
+      "max_error_m": 0.036403402514388034,
+      "min_error_m": 0.0026569513618080946,
+      "num_runs": 5
+    },
+    {
+      "task": "230713/quip_360_R_001__A431.csv",
+      "clip": "quip_360_R_001__A431",
+      "num_constraint_points": 300,
+      "mean_error_m": 0.04402916861738375,
+      "max_error_m": 0.08852454619329062,
+      "min_error_m": 0.008484645578311068,
+      "num_runs": 5
+    },
+    {
+      "task": "230713/walking_270_talking_R_002__A432.csv",
+      "clip": "walking_270_talking_R_002__A432",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.0442916603242043,
+      "max_error_m": 0.10794447055619458,
+      "min_error_m": 0.0037297199341029827,
+      "num_runs": 5
+    },
+    {
+      "task": "231004/eat_burger_sitting_R_001__A458_M.csv",
+      "clip": "eat_burger_sitting_R_001__A458_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.018533499358698663,
+      "max_error_m": 0.06472801052760059,
+      "min_error_m": 0.003457313346348314,
+      "num_runs": 5
+    },
+    {
+      "task": "231005/baby_full_diaper_turn_jog_ff_270_start_R_001__A463.csv",
+      "clip": "baby_full_diaper_turn_jog_ff_270_start_R_001__A463",
+      "num_constraint_points": 164,
+      "mean_error_m": 0.08849040481954644,
+      "max_error_m": 0.3866596828905984,
+      "min_error_m": 0.008469692193839681,
+      "num_runs": 5
+    },
+    {
+      "task": "231006/dance_fright_funk_001__A465_M.csv",
+      "clip": "dance_fright_funk_001__A465_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.03706980890398892,
+      "max_error_m": 0.13632345751756975,
+      "min_error_m": 0.003362991111013444,
+      "num_runs": 5
+    },
+    {
+      "task": "231018/dancing_routine_V001_001__A480_M.csv",
+      "clip": "dancing_routine_V001_001__A480_M",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.022991364239908177,
+      "max_error_m": 0.060269000541651296,
+      "min_error_m": 0.0022883478986681707,
+      "num_runs": 5
+    },
+    {
+      "task": "231018/high_horizontal_handle_horizontal_lever_left_side_back_002__A481.csv",
+      "clip": "high_horizontal_handle_horizontal_lever_left_side_back_002__A481",
+      "num_constraint_points": 436,
+      "mean_error_m": 0.018621718681360557,
+      "max_error_m": 0.07214016859922519,
+      "min_error_m": 0.001003673957413499,
+      "num_runs": 5
+    },
+    {
+      "task": "231018/high_vertical_handle_horizontal_lever_left_001__A481_M.csv",
+      "clip": "high_vertical_handle_horizontal_lever_left_001__A481_M",
+      "num_constraint_points": 364,
+      "mean_error_m": 0.01706605483613652,
+      "max_error_m": 0.06244868703258728,
+      "min_error_m": 0.0010943915153309599,
+      "num_runs": 5
+    },
+    {
+      "task": "231019/high_small_crank_under_ccw_001__A485_M.csv",
+      "clip": "high_small_crank_under_ccw_001__A485_M",
+      "num_constraint_points": 416,
+      "mean_error_m": 0.027065450806224967,
+      "max_error_m": 0.04878135914231905,
+      "min_error_m": 0.004765763022755033,
+      "num_runs": 5
+    },
+    {
+      "task": "231019/mid_lever_switch_under_front_001__A485.csv",
+      "clip": "mid_lever_switch_under_front_001__A485",
+      "num_constraint_points": 176,
+      "mean_error_m": 0.02785877511506568,
+      "max_error_m": 0.04089902398713712,
+      "min_error_m": 0.004482187912197878,
+      "num_runs": 5
+    },
+    {
+      "task": "231110/blowing_nose_R_001__A500.csv",
+      "clip": "blowing_nose_R_001__A500",
+      "num_constraint_points": 340,
+      "mean_error_m": 0.03526867346803163,
+      "max_error_m": 0.048870151939382954,
+      "min_error_m": 0.020601537016128924,
+      "num_runs": 5
+    },
+    {
+      "task": "231113/small_heavy_one_hand_walk_ff_start_360_R_001__A506_M.csv",
+      "clip": "small_heavy_one_hand_walk_ff_start_360_R_001__A506_M",
+      "num_constraint_points": 380,
+      "mean_error_m": 0.03564811087334967,
+      "max_error_m": 0.08396800995413316,
+      "min_error_m": 0.002889583634435702,
+      "num_runs": 5
+    },
+    {
+      "task": "231113/small_light_one_hand_walk_ff_loop_360_R_001__A505.csv",
+      "clip": "small_light_one_hand_walk_ff_loop_360_R_001__A505",
+      "num_constraint_points": 364,
+      "mean_error_m": 0.02929135655107652,
+      "max_error_m": 0.06224222854538264,
+      "min_error_m": 0.0017018990277640137,
+      "num_runs": 5
+    },
+    {
+      "task": "231117/big_light_two_hands_right_side_high_to_right_side_low_R_001__A523.csv",
+      "clip": "big_light_two_hands_right_side_high_to_right_side_low_R_001__A523",
+      "num_constraint_points": 324,
+      "mean_error_m": 0.027961627226520895,
+      "max_error_m": 0.07832214353871027,
+      "min_error_m": 0.0034517787520788592,
+      "num_runs": 5
+    },
+    {
+      "task": "231117/medium_big_heavy_one_hand_behind_medium_to_front_medium_R_002__A523.csv",
+      "clip": "medium_big_heavy_one_hand_behind_medium_to_front_medium_R_002__A523",
+      "num_constraint_points": 240,
+      "mean_error_m": 0.037098008194684104,
+      "max_error_m": 0.08565449226673812,
+      "min_error_m": 0.0032743808709768457,
+      "num_runs": 5
+    },
+    {
+      "task": "231117/medium_big_heavy_one_hand_right_side_low_to_behind_low_R_001__A520_M.csv",
+      "clip": "medium_big_heavy_one_hand_right_side_low_to_behind_low_R_001__A520_M",
+      "num_constraint_points": 260,
+      "mean_error_m": 0.026308851886782298,
+      "max_error_m": 0.06065919004135717,
+      "min_error_m": 0.0027094567647660385,
+      "num_runs": 5
+    },
+    {
+      "task": "231117/small_heavy_one_hand_put_down_behind_high_R_001__A523_M.csv",
+      "clip": "small_heavy_one_hand_put_down_behind_high_R_001__A523_M",
+      "num_constraint_points": 284,
+      "mean_error_m": 0.02961669452333302,
+      "max_error_m": 0.07028793793393143,
+      "min_error_m": 0.005351020965017091,
+      "num_runs": 5
+    },
+    {
+      "task": "231117/small_heavy_one_hand_right_side_low_to_behind_low_R_001__A521.csv",
+      "clip": "small_heavy_one_hand_right_side_low_to_behind_low_R_001__A521",
+      "num_constraint_points": 312,
+      "mean_error_m": 0.027464475966580592,
+      "max_error_m": 0.05614852305876862,
+      "min_error_m": 0.003085979510682535,
+      "num_runs": 5
+    },
+    {
+      "task": "231120/big_heavy_two_hands_behind_low_to_behind_low_R_001__A525_M.csv",
+      "clip": "big_heavy_two_hands_behind_low_to_behind_low_R_001__A525_M",
+      "num_constraint_points": 300,
+      "mean_error_m": 0.03851801895252693,
+      "max_error_m": 0.09897010581240656,
+      "min_error_m": 0.004594211227380886,
+      "num_runs": 5
+    },
+    {
+      "task": "231120/medium_light_two_hands_front_medium_to_behind_medium_R_001__A525.csv",
+      "clip": "medium_light_two_hands_front_medium_to_behind_medium_R_001__A525",
+      "num_constraint_points": 304,
+      "mean_error_m": 0.025567654230756704,
+      "max_error_m": 0.05893225307393626,
+      "min_error_m": 0.005836870671834196,
+      "num_runs": 5
+    },
+    {
+      "task": "240527/neutral_dancecard_turn_go_jog_003__A536.csv",
+      "clip": "neutral_dancecard_turn_go_jog_003__A536",
+      "num_constraint_points": 484,
+      "mean_error_m": 0.04228967669665546,
+      "max_error_m": 0.12937311090243248,
+      "min_error_m": 0.0035067397589138042,
+      "num_runs": 5
+    }
+  ],
+  "overall_all_ee": {
+    "count": 208120,
+    "mean_error_m": 0.03001837848215322,
+    "max_error_m": 0.7886706142324199,
+    "min_error_m": 0.0002862101372194806
+  },
+  "overall_hands_only": {
+    "count": 104060,
+    "mean_error_m": 0.030215514840095572,
+    "max_error_m": 0.4293764850378477,
+    "min_error_m": 0.0002862101372194806
+  },
+  "overall_mean_of_task_means_m": 0.03071377832020011,
+  "failures": []
+}

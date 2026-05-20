@@ -57,7 +57,12 @@ class LLM2VecEncoder:
             is_string = True
 
         with torch.no_grad():
-            encoded_text = self.model.encode(text, batch_size=len(text), show_progress_bar=False)
+            encoded_text = self.model.encode(
+                text,
+                batch_size=len(text),
+                show_progress_bar=False,
+                device=str(self.get_device()),
+            )
 
         assert len(encoded_text.shape)
         assert self.llm_dim == encoded_text.shape[-1]

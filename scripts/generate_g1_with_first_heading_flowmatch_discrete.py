@@ -15,12 +15,11 @@ REPO_ROOT = Path(__file__).resolve().parents[1]
 if str(REPO_ROOT) not in sys.path:
     sys.path.insert(0, str(REPO_ROOT))
 
-from kimodo import DEFAULT_MODEL, load_model
+from kimodo import DEFAULT_MODEL
 from kimodo.constraints import load_constraints_lst
 from kimodo.model.cfg import CFG_TYPES
 from kimodo.model.kimodo_model import Kimodo
 from kimodo.model.loading import instantiate_from_dict
-from kimodo.model.registry import get_model_info
 from kimodo.tools import seed_everything
 
 
@@ -65,7 +64,9 @@ def extract_first_heading_angle_from_npz(npz_path: str | os.PathLike[str]) -> fl
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Generate G1 motion while injecting the true first-frame heading.")
+    parser = argparse.ArgumentParser(
+        description="Generate G1 motion with distilled Flow-Matching student using discrete-time aligned sampling."
+    )
     parser.add_argument("prompt", type=str, help="Text prompt describing the motion to generate.")
     parser.add_argument(
         "--model",
@@ -75,14 +76,7 @@ def parse_args():
     )
     parser.add_argument("--duration", type=float, required=True, help="Duration in seconds.")
     parser.add_argument("--num_samples", type=int, default=1, help="Number of samples to generate.")
-    parser.add_argument("--diffusion_steps", type=int, default=100, help="Number of diffusion steps.")
-    parser.add_argument(
-        "--sampler",
-        type=str,
-        default="auto",
-        choices=["auto", "diffusion", "flowmatch"],
-        help="Sampling backend. 'auto' picks flowmatch if distill config has flow_matching, else diffusion.",
-    )
+    parser.add_argument("--inference_steps", type=int, default=20, help="Number of discrete FM inference steps.")
     parser.add_argument("--num_transition_frames", type=int, default=5, help="Transition frames for multi-prompt mode.")
     parser.add_argument(
         "--hard_project_observed_motion",
@@ -123,15 +117,18 @@ def parse_args():
         "--distill_config",
         type=str,
         default=None,
-        help="Optional distillation YAML path. If provided with --distill_ckpt, build inference model from student config.",
+        help="Distillation YAML path (required).",
     )
     parser.add_argument(
         "--distill_ckpt",
         type=str,
         default=None,
-        help="Optional distillation checkpoint (.pt). Expects key 'student' for strict student loading.",
+        help="Distillation checkpoint path (required). Supports student/ema.shadow/state_dict.",
     )
-    return parser.parse_args()
+    args = parser.parse_args()
+    if not args.distill_config or not args.distill_ckpt:
+        raise ValueError("This script requires --distill_config and --distill_ckpt.")
+    return args
 
 
 def _single_file_path(path: str, ext: str) -> str:
@@ -241,21 +238,6 @@ def _build_model_from_distill(
     return model
 
 
-def _is_flowmatch_distill_config(path: str | None) -> bool:
-    if not path:
-        return False
-    cfg = OmegaConf.load(path)
-    return cfg.get("flow_matching", None) is not None
-
-
-def _resolve_sampler_mode(args: argparse.Namespace) -> str:
-    if args.sampler != "auto":
-        return args.sampler
-    if args.distill_config and _is_flowmatch_distill_config(args.distill_config):
-        return "flowmatch"
-    return "diffusion"
-
-
 def _encode_text_for_sampling(model: Kimodo, texts: list[str]) -> tuple[torch.Tensor, torch.Tensor]:
     text_feat, text_length = model.text_encoder(texts)
     text_feat = text_feat.to(model.device)
@@ -268,7 +250,7 @@ def _encode_text_for_sampling(model: Kimodo, texts: list[str]) -> tuple[torch.Te
     return text_feat, text_pad_mask
 
 
-def _generate_flowmatch_motion(
+def _generate_flowmatch_motion_discrete(
     *,
     model: Kimodo,
     texts: list[str],
@@ -294,7 +276,7 @@ def _generate_flowmatch_motion(
     bsz = text_feat.shape[0]
     x = torch.randn((bsz, max_frames, model.motion_rep.motion_rep_dim), device=model.device)
     _, map_tensor = model.diffusion.space_timesteps(num_steps)
-    dt = -1.0 / float(num_steps - 1)
+    teacher_time = torch.linspace(1.0, 0.0, steps=num_steps, device=model.device, dtype=x.dtype)
 
     hard_mask = None
     hard_boundary_frame = None
@@ -310,7 +292,7 @@ def _generate_flowmatch_motion(
             hard_mask = None
 
     with torch.inference_mode():
-        for k in tqdm(range(num_steps - 1, 0, -1)):
+        for k in tqdm(range(0, num_steps - 1)):
             if hard_mask is not None and observed_motion is not None:
                 x_preproj = x
                 x = torch.where(hard_mask, observed_motion, x)
@@ -349,9 +331,14 @@ def _generate_flowmatch_motion(
                 observed_motion,
                 cfg_type=cfg_type,
             )
-            x_euler = x + dt * v1
+            # NOTE: train target uses
+            #   v_teacher = (x_{k+1} - x_{k-1}) / (t_{k-1} - t_{k+1})
+            # which corresponds to -dx/dt on this time grid. Therefore, at inference we
+            # must integrate with x_{k+1} = x_k - dt * v (not + dt * v).
+            dt = (teacher_time[k + 1] - teacher_time[k]).view(1, 1, 1)  # negative
+            x_euler = x - dt * v1
 
-            t_nxt = torch.full((bsz,), k - 1, device=model.device, dtype=torch.long)
+            t_nxt = torch.full((bsz,), k + 1, device=model.device, dtype=torch.long)
             t_nxt_map = map_tensor[t_nxt]
             v2 = model.denoiser(
                 cfg_weight,
@@ -365,8 +352,8 @@ def _generate_flowmatch_motion(
                 observed_motion,
                 cfg_type=cfg_type,
             )
-            # Heun update.
-            x = x + 0.5 * dt * (v1 + v2)
+            # Discrete aligned Heun update with training-consistent sign.
+            x = x - 0.5 * dt * (v1 + v2)
 
     if hard_mask is not None and observed_motion is not None:
         x = torch.where(hard_mask, observed_motion, x)
@@ -378,27 +365,12 @@ def main():
     device = "cuda:0" if torch.cuda.is_available() else "cpu"
     print(f"Using device: {device}")
 
-    if bool(args.distill_config) != bool(args.distill_ckpt):
-        raise ValueError("--distill_config and --distill_ckpt must be provided together.")
-
-    if args.distill_config and args.distill_ckpt:
-        model = _build_model_from_distill(
-            distill_config_path=args.distill_config,
-            distill_ckpt_path=args.distill_ckpt,
-            device=device,
-        )
-        resolved_model = "distill-student"
-        print(f"Loaded distill student model from config={args.distill_config} ckpt={args.distill_ckpt}")
-    else:
-        model, resolved_model = load_model(
-            args.model,
-            device=device,
-            default_family="Kimodo",
-            return_resolved_name=True,
-        )
-        info = get_model_info(resolved_model)
-        display = info.display_name if info else resolved_model
-        print(f"Loaded model: {display} ({resolved_model})")
+    model = _build_model_from_distill(
+        distill_config_path=args.distill_config,
+        distill_ckpt_path=args.distill_ckpt,
+        device=device,
+    )
+    print(f"Loaded distill student model from config={args.distill_config} ckpt={args.distill_ckpt}")
 
     if args.seed is not None:
         seed_everything(args.seed)
@@ -421,62 +393,42 @@ def main():
     print(f"Using first heading angle from {args.heading_source_npz}: {first_heading_angle:.6f} rad")
 
     cfg_kwargs = _resolve_cfg_kwargs(args)
-    sampler_mode = _resolve_sampler_mode(args)
-    print(f"Sampler mode: {sampler_mode}")
+    print("Sampler mode: flowmatch_discrete_aligned")
     first_heading_tensor = torch.tensor([first_heading_angle], dtype=torch.float32, device=device)
+    if args.num_samples != 1:
+        raise ValueError("Flowmatch discrete sampler currently supports num_samples=1 in this script.")
+    if args.cfg_type == "nocfg":
+        raise ValueError("Flowmatch discrete sampler does not support cfg_type=nocfg.")
 
-    if sampler_mode == "diffusion":
-        output = model(
-            args.prompt,
-            num_frames,
-            constraint_lst=constraint_lst,
-            num_denoising_steps=args.diffusion_steps,
-            num_samples=args.num_samples,
-            multi_prompt=False,
-            num_transition_frames=args.num_transition_frames,
-            post_processing=False,
-            return_numpy=True,
-            first_heading_angle=first_heading_tensor,
-            hard_project_observed_motion=args.hard_project_observed_motion,
-            hard_project_prefix_frames=args.hard_project_prefix_frames,
-            hard_project_release_frames=args.hard_project_release_frames,
-            **cfg_kwargs,
+    lengths = torch.tensor([num_frames], device=device)
+    max_frames = int(num_frames)
+    motion_pad_mask = torch.arange(max_frames, device=device).unsqueeze(0) < lengths.unsqueeze(1)
+    observed_motion, motion_mask = None, None
+    if constraint_lst:
+        observed_motion, motion_mask = model.motion_rep.create_conditions_from_constraints_batched(
+            constraint_lst,
+            lengths,
+            to_normalize=True,
+            device=device,
         )
-    else:
-        if args.num_samples != 1:
-            raise ValueError("Flowmatch sampler currently supports num_samples=1 in this script.")
-        if args.cfg_type == "nocfg":
-            raise ValueError("Flowmatch sampler does not support cfg_type=nocfg here.")
 
-        lengths = torch.tensor([num_frames], device=device)
-        max_frames = int(num_frames)
-        motion_pad_mask = torch.arange(max_frames, device=device).unsqueeze(0) < lengths.unsqueeze(1)
-        observed_motion, motion_mask = None, None
-        if constraint_lst:
-            observed_motion, motion_mask = model.motion_rep.create_conditions_from_constraints_batched(
-                constraint_lst,
-                lengths,
-                to_normalize=True,
-                device=device,
-            )
-
-        texts = [args.prompt]
-        motion = _generate_flowmatch_motion(
-            model=model,
-            texts=texts,
-            max_frames=max_frames,
-            num_steps=args.diffusion_steps,
-            pad_mask=motion_pad_mask,
-            first_heading_angle=first_heading_tensor,
-            motion_mask=motion_mask,
-            observed_motion=observed_motion,
-            cfg_weight=cfg_kwargs["cfg_weight"],
-            cfg_type=cfg_kwargs["cfg_type"],
-            hard_project_observed_motion=args.hard_project_observed_motion,
-            hard_project_prefix_frames=args.hard_project_prefix_frames,
-            hard_project_release_frames=args.hard_project_release_frames,
-        )
-        output = model.motion_rep.inverse(motion, is_normalized=True, return_numpy=True)
+    texts = [args.prompt]
+    motion = _generate_flowmatch_motion_discrete(
+        model=model,
+        texts=texts,
+        max_frames=max_frames,
+        num_steps=args.inference_steps,
+        pad_mask=motion_pad_mask,
+        first_heading_angle=first_heading_tensor,
+        motion_mask=motion_mask,
+        observed_motion=observed_motion,
+        cfg_weight=cfg_kwargs["cfg_weight"],
+        cfg_type=cfg_kwargs["cfg_type"],
+        hard_project_observed_motion=args.hard_project_observed_motion,
+        hard_project_prefix_frames=args.hard_project_prefix_frames,
+        hard_project_release_frames=args.hard_project_release_frames,
+    )
+    output = model.motion_rep.inverse(motion, is_normalized=True, return_numpy=True)
 
     n_samples = int(output["posed_joints"].shape[0])
     output_base = args.output

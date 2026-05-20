@@ -124,7 +124,16 @@ class LLM2Vec(nn.Module):
         keys = ["pooling_mode", "max_length", "doc_max_length", "skip_instruction"]
         encoder_args = {key: kwargs.pop(key, None) for key in keys if kwargs.get(key) is not None}
 
-        tokenizer = AutoTokenizer.from_pretrained(base_model_name_or_path)
+        try:
+            tokenizer = AutoTokenizer.from_pretrained(base_model_name_or_path)
+        except ValueError as exc:
+            # Some model snapshots do not ship a compatible fast tokenizer bundle for
+            # the current transformers build. Fall back to the slow tokenizer path.
+            err = str(exc)
+            if "backend tokenizer" in err or "sentencepiece or tiktoken" in err:
+                tokenizer = AutoTokenizer.from_pretrained(base_model_name_or_path, use_fast=False)
+            else:
+                raise
         tokenizer.pad_token = tokenizer.eos_token
         tokenizer.padding_side = "left"
 
@@ -351,7 +360,9 @@ class LLM2Vec(nn.Module):
         sentences_sorted = [sentences[idx] for idx in length_sorted_idx]
         all_embeddings = []
 
-        if torch.cuda.device_count() <= 1:
+        disable_mp = os.environ.get("KIMODO_LLM2VEC_DISABLE_MP", "0") == "1"
+        disable_mp = disable_mp or (device is not None and str(device) != "cuda")
+        if torch.cuda.device_count() <= 1 or disable_mp:
             # This branch also support mps devices
             self.to(device)
             for start_index in trange(

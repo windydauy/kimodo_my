@@ -66,6 +66,8 @@ class DistillationKimodoLoss(nn.Module):
         teacher_x0: Tensor,
         gt_x0: Tensor,
         pad_mask: Optional[Tensor] = None,
+        teacher_weight: Optional[float] = None,
+        gt_weight: Optional[float] = None,
     ) -> Dict[str, Tensor]:
         if pred_x0.shape != teacher_x0.shape or pred_x0.shape != gt_x0.shape:
             raise ValueError(
@@ -90,12 +92,19 @@ class DistillationKimodoLoss(nn.Module):
             input_is_normalized=self.input_is_normalized,
         )
 
-        total = (self.teacher_weight * teacher_terms["total"]) + (self.gt_weight * gt_terms["total"])
+        tw = self.teacher_weight if teacher_weight is None else _validate_weight("teacher_weight", teacher_weight)
+        gw = self.gt_weight if gt_weight is None else _validate_weight("gt_weight", gt_weight)
+        if tw == 0.0 and gw == 0.0:
+            raise ValueError("teacher_weight and gt_weight cannot both be zero.")
+
+        total = (tw * teacher_terms["total"]) + (gw * gt_terms["total"])
 
         out: Dict[str, Tensor] = {
             "total": total,
             "loss_teacher_total": teacher_terms["total"],
             "loss_gt_total": gt_terms["total"],
+            "teacher_weight": torch.as_tensor(tw, device=pred_x0.device, dtype=pred_x0.dtype),
+            "gt_weight": torch.as_tensor(gw, device=pred_x0.device, dtype=pred_x0.dtype),
         }
 
         for name in LOSS_NAMES:
