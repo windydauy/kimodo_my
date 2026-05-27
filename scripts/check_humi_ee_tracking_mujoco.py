@@ -30,7 +30,7 @@ def _infer_fps(timestamps: np.ndarray) -> float:
     return float(1.0 / np.mean(dt))
 
 
-def _load_humi_raw(path: Path) -> tuple[np.ndarray, dict[str, np.ndarray], float]:
+def _load_humi_raw(path: Path, *, canonicalize: bool = True) -> tuple[np.ndarray, dict[str, np.ndarray], float]:
     with path.open("r", encoding="utf-8") as f:
         data = json.load(f)
     episode = data.get("episode")
@@ -44,7 +44,8 @@ def _load_humi_raw(path: Path) -> tuple[np.ndarray, dict[str, np.ndarray], float
         [[frame[field]["position"] for field in field_order] for frame in episode],
         dtype=np.float64,
     )
-    all_positions, _origin_xy, _floor_z = canonicalize_humi_positions(all_positions)
+    if canonicalize:
+        all_positions, _origin_xy, _floor_z = canonicalize_humi_positions(all_positions)
     positions = {field: all_positions[:, i] for i, field in enumerate(field_order)}
     return timestamps, positions, fps
 
@@ -66,6 +67,11 @@ def parse_args() -> argparse.Namespace:
         choices=sorted(FIELD_TO_BODY),
         help="HUMI fields to evaluate.",
     )
+    parser.add_argument(
+        "--no-canonicalize",
+        action="store_true",
+        help="Do not translate root XY to origin or shift floor height to z=0 before computing errors.",
+    )
     return parser.parse_args()
 
 
@@ -75,7 +81,7 @@ def main() -> None:
     if qpos.ndim == 1:
         qpos = qpos[None, :]
 
-    timestamps, humi_positions, humi_fps = _load_humi_raw(Path(args.humi_json))
+    timestamps, humi_positions, humi_fps = _load_humi_raw(Path(args.humi_json), canonicalize=not args.no_canonicalize)
     model = mujoco.MjModel.from_xml_path(args.xml)
     data = mujoco.MjData(model)
 
@@ -106,6 +112,7 @@ def main() -> None:
 
     print(f"CSV: {args.csv}")
     print(f"HUMI: {args.humi_json}")
+    print(f"canonicalized={not args.no_canonicalize}")
     print(f"humi_fps={humi_fps:.6f}, generated_fps={float(args.generated_fps):.6f}")
     print(f"evaluated_generated_frames={sum(len(v) for v in per_field.values()) // max(len(args.fields), 1)}")
     print("")

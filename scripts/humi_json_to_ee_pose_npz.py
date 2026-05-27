@@ -76,6 +76,7 @@ def build_humi_ee_pose_npz(
     *,
     fps: float | None = None,
     max_source_frames: int | None = None,
+    canonicalize: bool = True,
 ) -> dict:
     path = Path(json_path)
     episode = _load_episode(path)
@@ -91,7 +92,11 @@ def build_humi_ee_pose_npz(
     for t, frame in enumerate(episode):
         for j, field in enumerate(POSE_FIELD_NAMES):
             positions[t, j], rotations[t, j] = _pose_xyz_rot(frame, field)
-    positions, origin_xy, floor_z = canonicalize_humi_positions(positions)
+    if canonicalize:
+        positions, origin_xy, floor_z = canonicalize_humi_positions(positions)
+    else:
+        origin_xy = np.zeros(2, dtype=np.float64)
+        floor_z = 0.0
 
     root_global_6d = np.zeros((num_frames, 6), dtype=np.float64)
     ee_root_relative_6d = np.zeros((num_frames, len(EE_NAMES), 6), dtype=np.float64)
@@ -124,6 +129,7 @@ def build_humi_ee_pose_npz(
         "root_rotation_type": np.asarray("quaternion_wxyz"),
         "canonical_origin_xy": origin_xy,
         "canonical_floor_z": np.asarray(floor_z, dtype=np.float64),
+        "canonicalized": np.asarray(bool(canonicalize)),
         "source_json_path": np.asarray(str(path)),
         "timestamps": timestamps,
     }
@@ -147,6 +153,11 @@ def parse_args() -> argparse.Namespace:
         default=None,
         help="Optional cap on source frames kept from the beginning of the HUMI recording.",
     )
+    parser.add_argument(
+        "--no-canonicalize",
+        action="store_true",
+        help="Do not translate root XY to origin or shift floor height to z=0.",
+    )
     return parser.parse_args()
 
 
@@ -155,11 +166,17 @@ def main() -> None:
     output = Path(args.output)
     output.parent.mkdir(parents=True, exist_ok=True)
 
-    converted = build_humi_ee_pose_npz(args.input, fps=args.fps, max_source_frames=args.max_source_frames)
+    converted = build_humi_ee_pose_npz(
+        args.input,
+        fps=args.fps,
+        max_source_frames=args.max_source_frames,
+        canonicalize=not args.no_canonicalize,
+    )
     np.savez(output, **converted)
 
     print(f"Saved adapter NPZ: {output}")
     print(f"fps={float(converted['fps']):.4f}")
+    print(f"canonicalized={bool(converted['canonicalized'])}")
     print(f"root_global_6d_shape={tuple(converted['root_global_6d'].shape)}")
     print(f"ee_root_relative_6d_shape={tuple(converted['ee_root_relative_6d'].shape)}")
     print(f"ee_names={converted['ee_names'].tolist()}")

@@ -60,6 +60,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--original-color", type=str, default="0,200,0", help="Original ghost RGB, e.g. 0,200,0.")
     parser.add_argument("--generated-color", type=str, default="255,120,0", help="Generated robot RGB.")
     parser.add_argument("--ghost-opacity", type=float, default=0.35, help="Opacity for HUMI ghost markers.")
+    parser.add_argument(
+        "--no-canonicalize-original",
+        action="store_true",
+        help="Do not translate original HUMI root XY to origin or shift floor height to z=0.",
+    )
     return parser.parse_args()
 
 
@@ -94,7 +99,7 @@ def _rigid_transform(src: np.ndarray, dst: np.ndarray) -> tuple[np.ndarray, np.n
     return rot, trans
 
 
-def _load_humi_pose(json_path: Path) -> tuple[np.ndarray, np.ndarray, float, np.ndarray]:
+def _load_humi_pose(json_path: Path, *, canonicalize: bool = True) -> tuple[np.ndarray, np.ndarray, float, np.ndarray]:
     with json_path.open("r", encoding="utf-8") as f:
         data = json.load(f)
     episode = data.get("episode")
@@ -119,7 +124,8 @@ def _load_humi_pose(json_path: Path) -> tuple[np.ndarray, np.ndarray, float, np.
             pos[t, j] = xyz_m
             rot[t, j] = _rot_mujoco_to_kimodo(rot_m)
 
-    pos, _origin_xy, _floor_z = canonicalize_humi_positions(pos)
+    if canonicalize:
+        pos, _origin_xy, _floor_z = canonicalize_humi_positions(pos)
     pos = np.asarray([[_xyz_mujoco_to_kimodo(p) for p in frame] for frame in pos], dtype=np.float64)
     return pos, rot, fps, timestamps
 
@@ -281,7 +287,10 @@ def main() -> None:
     xml_path = str(skeleton_asset_path("g1skel34", "xml", "g1.xml"))
     skeleton = G1Skeleton34()
 
-    original_pos, _original_rot, original_fps, _original_timestamps = _load_humi_pose(Path(args.original_json))
+    original_pos, _original_rot, original_fps, _original_timestamps = _load_humi_pose(
+        Path(args.original_json),
+        canonicalize=not args.no_canonicalize_original,
+    )
     if args.max_duration_sec is not None:
         keep = max(1, min(original_pos.shape[0], int(np.floor(float(args.max_duration_sec) * original_fps))))
         original_pos = original_pos[:keep]
