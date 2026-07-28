@@ -1,5 +1,6 @@
 model:
   num_base_steps: 1000
+
   teacher_denoiser:
     _target_: kimodo.model.twostage_denoiser.TwostageDenoiser
     motion_mask_mode: concat
@@ -10,9 +11,7 @@ model:
       stats_path: /home/mole/yzh/kimodo_my_yzh/huggingface/hub/models--nvidia--Kimodo-G1-RP-v1/snapshots/3020ad8c419c244e0429d360163730c63c4ed011/stats/motion
       skeleton:
         _target_: kimodo.skeleton.G1Skeleton34
-    llm_shape:
-    - 1
-    - 4096
+    llm_shape: [1, 4096]
     use_text_mask: false
     latent_dim: 1024
     ff_size: 2048
@@ -24,6 +23,7 @@ model:
     norm_first: false
     num_text_tokens_override: 50
     input_first_heading_angle: true
+
   student_denoiser:
     _target_: kimodo.model.twostage_denoiser.TwostageDenoiser
     motion_mask_mode: concat
@@ -34,9 +34,7 @@ model:
       stats_path: /home/mole/yzh/kimodo_my_yzh/huggingface/hub/models--nvidia--Kimodo-G1-RP-v1/snapshots/3020ad8c419c244e0429d360163730c63c4ed011/stats/motion
       skeleton:
         _target_: kimodo.skeleton.G1Skeleton34
-    llm_shape:
-    - 1
-    - 4096
+    llm_shape: [1, 4096]
     use_text_mask: false
     latent_dim: 1024
     ff_size: 2048
@@ -48,11 +46,13 @@ model:
     norm_first: false
     num_text_tokens_override: 50
     input_first_heading_angle: true
+
 text_encoder:
   _target_: kimodo.model.dummy_text_encoder.DummyTextEncoder
   llm_dim: 4096
+
 data:
-  num_workers: 8
+  num_workers: 4
   pin_memory: true
   dataset:
     _target_: kimodo.training.dataset.G1CSVTextDataset
@@ -75,10 +75,10 @@ data:
     skip_bad_samples: true
     max_bad_sample_retries: 16
     phase2_enabled: true
-    phase2_num_keyframes: 1
-    phase2_constraint_mode: endeffector
-    phase2_constraint_policy: legacy
-    phase2_fullbody_prob: 0.0
+    phase2_num_keyframes: 300
+    phase2_constraint_mode: mixed
+    phase2_constraint_policy: paper
+    phase2_fullbody_prob: 0.5
     phase2_include_first: true
     phase2_include_last: true
     phase2_condition_normalized: true
@@ -87,170 +87,95 @@ data:
     phase2_mix_two_patterns_prob: 0.0
     phase2_bias_towards_fewer_keyframes: false
     phase2_dense_path_stride: 1
-    phase2_end_effector_joint_pool:
-    - LeftHand
-    - RightHand
-    - LeftFoot
-    - RightFoot
+    phase2_end_effector_joint_pool: [LeftHand, RightHand, LeftFoot, RightFoot]
     phase2_pattern_weights:
       fullbody_sparse: 0.0
-      endeffector_sparse: 1.0
-      fivepoint_dense: 0.0
+      endeffector_sparse: 0.0
+      fivepoint_dense: 1.0
       root2d_sparse: 0.0
       root2d_dense: 0.0
       foot_contacts_sparse: 0.0
-    phase2_end_effector_joint_sets:
-    - - LeftHand
-      - RightHand
-      - LeftFoot
-      - RightFoot
+
 loss:
-  teacher_weight: 0.3
-  gt_weight: 0.7
+  teacher_weight: 0.7
+  gt_weight: 0.3
   constraint_loss_weight: 0.0
-  teacher_constraint_loss_weight: 0.2
-  gt_constraint_loss_weight: 0.2
-  hand_constraint_weight: 0.8
-  foot_constraint_weight: 0.8
-  root_constraint_weight: 0.3
+  teacher_constraint_loss_weight: 0.5
+  gt_constraint_loss_weight: 0.5
+  hand_constraint_weight: 2.0
+  foot_constraint_weight: 2.0
+  root_constraint_weight: 0.1
   constraint_root_acc_weight: 0.15
-  constraint_root_acc_dims:
-  - 0
-  - 2
+  constraint_root_acc_dims: [0, 2]
   constraint_heading_acc_weight: 0.2
   constraint_hand_pos_acc_weight: 3.0
-  constraint_hand_pos_acc_dims:
-  - 75
-  - 76
-  - 77
-  - 99
-  - 100
-  - 101
-  - 18
-  - 19
-  - 20
-  - 39
-  - 40
-  - 41
+  constraint_hand_pos_acc_dims: [75, 76, 77, 99, 100, 101, 18, 19, 20, 39, 40, 41]
   constraint_hand_rot_acc_weight: 1.0
-  constraint_hand_rot_acc_dims:
-  - 150
-  - 151
-  - 152
-  - 153
-  - 154
-  - 155
-  - 198
-  - 199
-  - 200
-  - 201
-  - 202
-  - 203
-  - 36
-  - 37
-  - 38
-  - 39
-  - 40
-  - 41
-  - 78
-  - 79
-  - 80
-  - 81
-  - 82
-  - 83
+  constraint_hand_rot_acc_dims: [150, 151, 152, 153, 154, 155, 198, 199, 200, 201, 202, 203, 36, 37, 38, 39, 40, 41, 78, 79, 80, 81, 82, 83]
   self_acc_weight: 5.0
   root_acc_weight: 0.3
   heading_acc_weight: 1.0
   weight_schedule:
-    enabled: true
-    type: linear
-    start_step: 0
-    end_step: 10000
-    teacher_start: 0.1
-    teacher_end: 0.3
-    gt_start: 0.9
-    gt_end: 0.7
-  teacher_gammas:
-  - 10.0
-  - 2.0
-  - 10.0
-  - 3.0
-  - 10.0
-  - 4.0
-  - 5.0
-  gt_gammas:
-  - 10.0
-  - 2.0
-  - 10.0
-  - 3.0
-  - 10.0
-  - 4.0
-  - 5.0
+    enabled: false
+  teacher_gammas: [10.0, 2.0, 10.0, 3.0, 10.0, 4.0, 5.0]
+  gt_gammas: [10.0, 2.0, 10.0, 3.0, 10.0, 4.0, 5.0]
+
 distillation:
   teacher_steps: 100
   student_steps: 20
-  student_init_from_teacher: true
+  student_init_from_teacher: false
   student_init_mode: teacher_layer_map
-  teacher_layer_indices_for_student:
-  - 0
-  - 2
-  - 4
-  - 6
-  - 8
-  - 10
-  - 12
-  - 14
+  teacher_layer_indices_for_student: [0, 2, 4, 6, 8, 10, 12, 14]
+
+dagger:
+  initial_student_ckpt: /data/scq/kimodo_my/train_outputs/g1_fivepoint_dense_notext_stage1_30k_3gpu_bs64_k6/ema_final.pt
+  samples_per_rollout: 6
+  include_t0: true
+
 phase2:
   enabled: true
   start_step: 0
-  end_step: 10000
-  start_keyframes: 1
-  end_keyframes: 50
+  end_step: 0
+  start_keyframes: 300
+  end_keyframes: 300
+
 training:
   seed: 42
   deterministic: false
-  output_dir: /data/mole/yzh/kimodo_my/outputs/g1_fivepoint_curriculum_notext_stage1_10k_4gpu_bs256_smooth_wandb
+  output_dir: /data/scq/kimodo_my/train_outputs/g1_fivepoint_dense_notext_stage2_dagger_70k_3gpu_bs32_k6
   resume: null
-  total_steps: 10000
-  batch_size: 64
+  total_steps: 70000
+  batch_size: 32
   optimizer: adam_atan2
-  betas:
-  - 0.9
-  - 0.999
-  lr: 2.0e-05
+  betas: [0.9, 0.999]
+  lr: 2.0e-5
+  lr_schedule:
+    enabled: true
+    type: cosine
+    warmup_steps: 2500
+    min_lr: 2.0e-6
   weight_decay: 0.0
   mixed_precision: fp16
   gradient_clip: 1.0
-  ema_decay: 0.995
+  ema_decay: 0.997
   ema_every: 10
   cfg_dropout_text_prob: 1.0
   cfg_dropout_motion_prob: 0.0
-  log_every: 5
-  save_every: 1000
+  log_every: 1
+  save_every: 5000
   skip_text_encode_errors: true
   max_text_encode_retries: 16
-  max_checkpoints_to_keep: 5
+  max_checkpoints_to_keep: 10
+  empty_cache_every_step: false
+
 wandb:
   enabled: true
   project: kimodo-g1-distill
   entity: null
-  name: g1-fivepoint-curriculum-stage1-10k-4gpu-bs256-smooth-log5
-  group: g1-fivepoint-curriculum-notext-stage1-10k-4gpu-bs256-smooth
+  name: g1-fivepoint-stage2-dagger-70k-3gpu-bs32-k6
+  group: g1-fivepoint-dense-notext-3gpu-bs64-bs32-k6
   job_type: train
-  tags:
-  - g1
-  - distill
-  - 16to8
-  - 100to20
-  - stage1
-  - teacher_init
-  - fivepoint_curriculum
-  - endeffector_legacy
-  - no_text
-  - 4gpu
-  - bs256
-  - 10k
-  - log5
+  tags: [g1, distill, 16to8, 100to20, stage2, dagger, fivepoint_dense, no_text, "4090", "3gpu", "bs32", "70k", "k6"]
   mode: online
   resume: allow
   id: null
